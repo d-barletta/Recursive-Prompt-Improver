@@ -42,6 +42,8 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
   // Media upload state
   const [attachedImages, setAttachedImages] = useState([]);
   const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
+  // External message state for "Copy to input" action
+  const [externalMessage, setExternalMessage] = useState(null);
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -482,6 +484,78 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
     }
   };
 
+  /**
+   * Handle "Keep from here" action - removes all messages before the specified index
+   * @param {number} messageIndex - Index of the message to keep from
+   */
+  const handleKeepFromHere = useCallback(
+    async (messageIndex) => {
+      const confirmed = await confirm({
+        title: "Keep From Here",
+        body: "This will delete all messages before this one. This action cannot be undone. Are you sure?",
+        confirmText: "Keep from here",
+        cancelText: "Cancel",
+        variant: "warning",
+      });
+
+      if (!confirmed) {
+        return;
+      }
+
+      const newMessages = messages.slice(messageIndex);
+      setMessages(newMessages);
+      setIsContextSaved(false);
+      showSuccess("Messages Removed", "Previous messages have been deleted");
+    },
+    [confirm, messages, showSuccess],
+  );
+
+  /**
+   * Handle "Copy to input" action - fills the chat input with the message content
+   * @param {string} content - The message content to copy to input
+   */
+  const handleCopyToInput = useCallback((content) => {
+    setExternalMessage(content);
+  }, []);
+
+  /**
+   * Handle "Retry" action - resends or re-runs a user message
+   * @param {number} messageIndex - Index of the message to retry
+   * @param {string} content - The message content to retry
+   * @param {Array} images - Images attached to the original message (if any)
+   * @param {boolean} isLastMessage - Whether this is the last message in the conversation
+   */
+  const handleRetryMessage = useCallback(
+    async (messageIndex, content, images, isLastMessage) => {
+      if (isLastMessage) {
+        // For the last message, remove it and its response (if exists), then resend
+        // Find the user message and any following assistant/tool messages
+        let endIndex = messageIndex + 1;
+        while (endIndex < messages.length && messages[endIndex].role !== ROLES.USER) {
+          endIndex++;
+        }
+        // Remove the user message and all following non-user messages
+        const newMessages = messages.slice(0, messageIndex);
+        setMessages(newMessages);
+        // Resend the message
+        setTimeout(() => {
+          handleSendMessage(content, images || []);
+        }, 100);
+      } else {
+        // For non-last messages, just send a copy without modifying the conversation
+        handleSendMessage(content, images || []);
+      }
+    },
+    [messages, handleSendMessage],
+  );
+
+  /**
+   * Clear external message after it's been used
+   */
+  const handleExternalMessageClear = useCallback(() => {
+    setExternalMessage(null);
+  }, []);
+
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
@@ -782,19 +856,33 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
               <em>Start a conversation by typing a message below.</em>
             </div>
           ) : (
-            messages.map((msg, index) => (
-              <ChatMessage
-                key={index}
-                role={msg.role}
-                content={msg.content}
-                images={msg.images}
-                toolCalls={msg.toolCalls}
-                toolId={msg.toolId}
-                toolName={msg.toolName}
-                avgTokens={msg.avgTokens}
-                ragResultsCount={msg.ragResultsCount}
-              />
-            ))
+            messages.map((msg, index) => {
+              // Find the index of the last user message
+              const lastUserMessageIndex = messages.reduceRight(
+                (acc, m, i) => (acc === -1 && m.role === ROLES.USER ? i : acc),
+                -1,
+              );
+              const isLastUserMessage = msg.role === ROLES.USER && index === lastUserMessageIndex;
+
+              return (
+                <ChatMessage
+                  key={index}
+                  role={msg.role}
+                  content={msg.content}
+                  images={msg.images}
+                  toolCalls={msg.toolCalls}
+                  toolId={msg.toolId}
+                  toolName={msg.toolName}
+                  avgTokens={msg.avgTokens}
+                  ragResultsCount={msg.ragResultsCount}
+                  isLastMessage={isLastUserMessage}
+                  isLoading={isLoading}
+                  onKeepFromHere={() => handleKeepFromHere(index)}
+                  onCopy={() => handleCopyToInput(msg.content)}
+                  onRetry={() => handleRetryMessage(index, msg.content, msg.images, isLastUserMessage)}
+                />
+              );
+            })
           )}
 
           {isLoading ? (
@@ -863,6 +951,8 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
             attachedImages={attachedImages}
             onOpenMediaUpload={() => setShowMediaUploadModal(true)}
             onImageDrop={handleMediaUpload}
+            externalMessage={externalMessage}
+            onExternalMessageClear={handleExternalMessageClear}
           />
         </div>
       </div>

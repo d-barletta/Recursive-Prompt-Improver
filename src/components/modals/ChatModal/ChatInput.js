@@ -13,6 +13,8 @@ const ChatInput = ({
   attachedImages = [],
   onOpenMediaUpload,
   onImageDrop,
+  externalMessage,
+  onExternalMessageClear,
 }) => {
   const textareaRef = useRef(null);
   const [message, setMessage] = useState("");
@@ -20,6 +22,23 @@ const ChatInput = ({
   const [isDragOver, setIsDragOver] = useState(false);
 
   const { showError } = useToast();
+
+  // Handle external message updates (e.g., from "Copy to input" button)
+  useEffect(() => {
+    if (externalMessage !== undefined && externalMessage !== null) {
+      setMessage(externalMessage);
+      setHistoryIndex(-1);
+      // Focus the textarea and clear the external message
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+        }
+        if (onExternalMessageClear) {
+          onExternalMessageClear();
+        }
+      }, 0);
+    }
+  }, [externalMessage, onExternalMessageClear]);
 
   // Get user messages from history
   const userMessages = messages.filter((msg) => msg.role === ROLES.USER).map((msg) => msg.content);

@@ -1,6 +1,7 @@
 import React from "react";
 import { ROLES } from "@utils/constants";
-import { Tile } from "@carbon/react";
+import { Tile, IconButton } from "@carbon/react";
+import { Copy, Redo, Cut } from "@carbon/icons-react";
 import MarkdownContent from "@components/shared/MarkdownContent";
 import { openHtmlPreview } from "@utils/internalBrowser";
 
@@ -12,6 +13,11 @@ const ChatMessage = ({
   toolName,
   avgTokens,
   ragResultsCount,
+  isLastMessage,
+  onKeepFromHere,
+  onCopy,
+  onRetry,
+  isLoading,
 }) => {
   const isUser = role === ROLES.USER;
   const isTool = role === ROLES.TOOL;
@@ -104,6 +110,41 @@ const ChatMessage = ({
             </div>
           )}
         </Tile>
+        {/* Action buttons for user messages */}
+        {isUser && (
+          <div className="chat-message__actions">
+            <IconButton
+              kind="ghost"
+              size="sm"
+              label="Keep from here"
+              onClick={onKeepFromHere}
+              disabled={isLoading}
+              align="bottom"
+            >
+              <Cut />
+            </IconButton>
+            <IconButton
+              kind="ghost"
+              size="sm"
+              label="Copy to input"
+              onClick={onCopy}
+              disabled={isLoading}
+              align="bottom"
+            >
+              <Copy />
+            </IconButton>
+            <IconButton
+              kind="ghost"
+              size="sm"
+              label={isLastMessage ? "Retry" : "Resend"}
+              onClick={onRetry}
+              disabled={isLoading}
+              align="bottom"
+            >
+              <Redo />
+            </IconButton>
+          </div>
+        )}
       </div>
     </div>
   );
