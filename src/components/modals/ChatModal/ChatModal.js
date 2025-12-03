@@ -885,10 +885,13 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
                   avgTokens={msg.avgTokens}
                   ragResultsCount={msg.ragResultsCount}
                   isLastMessage={isLastUserMessage}
+                  isFirstMessage={index === 0}
                   isLoading={isLoading}
                   onKeepFromHere={() => handleKeepFromHere(index)}
                   onCopy={() => handleCopyToInput(msg.content)}
-                  onRetry={() => handleRetryMessage(index, msg.content, msg.images, isLastUserMessage)}
+                  onRetry={() =>
+                    handleRetryMessage(index, msg.content, msg.images, isLastUserMessage)
+                  }
                 />
               );
             })

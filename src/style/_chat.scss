@@ -320,16 +320,11 @@
     display: flex;
     gap: $spacing-02;
     margin-top: $spacing-02;
-    opacity: 0;
     transition: opacity 0.15s ease-in-out;
 
     .cds--btn--ghost {
       min-height: 24px;
       padding: 0 $spacing-02;
     }
-  }
-
-  &:hover &__actions {
-    opacity: 1;
   }
 }

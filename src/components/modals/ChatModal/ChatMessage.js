@@ -1,7 +1,7 @@
 import React from "react";
 import { ROLES } from "@utils/constants";
 import { Tile, IconButton } from "@carbon/react";
-import { Copy, Redo, Cut } from "@carbon/icons-react";
+import { Copy, Cut, Restart } from "@carbon/icons-react";
 import MarkdownContent from "@components/shared/MarkdownContent";
 import { openHtmlPreview } from "@utils/internalBrowser";
 
@@ -14,6 +14,7 @@ const ChatMessage = ({
   avgTokens,
   ragResultsCount,
   isLastMessage,
+  isFirstMessage,
   onKeepFromHere,
   onCopy,
   onRetry,
@@ -113,16 +114,18 @@ const ChatMessage = ({
         {/* Action buttons for user messages */}
         {isUser && (
           <div className="chat-message__actions">
-            <IconButton
-              kind="ghost"
-              size="sm"
-              label="Keep from here"
-              onClick={onKeepFromHere}
-              disabled={isLoading}
-              align="bottom"
-            >
-              <Cut />
-            </IconButton>
+            {!isFirstMessage && (
+              <IconButton
+                kind="ghost"
+                size="sm"
+                label="Keep from here"
+                onClick={onKeepFromHere}
+                disabled={isLoading}
+                align="bottom"
+              >
+                <Cut />
+              </IconButton>
+            )}
             <IconButton
               kind="ghost"
               size="sm"
@@ -141,7 +144,7 @@ const ChatMessage = ({
               disabled={isLoading}
               align="bottom"
             >
-              <Redo />
+              <Restart />
             </IconButton>
           </div>
         )}
