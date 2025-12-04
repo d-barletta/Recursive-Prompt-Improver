@@ -1,6 +1,6 @@
 {
   "name": "w-rpi",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Recursive Prompt Improver - A desktop/web application for testing, improving, and managing LLM prompts with multi-provider support",
   "private": true,
   "homepage": "./",
@@ -33,8 +33,8 @@
   "dependencies": {
     "@alexbruf/react-diff-viewer": "^3.1.5",
     "@babel/core": "^7.28.5",
-    "@carbon/icons-react": "^11.70.0",
-    "@carbon/react": "^1.96.0",
+    "@carbon/icons-react": "^11.71.0",
+    "@carbon/react": "^1.97.0",
     "@codemirror/autocomplete": "^6.20.0",
     "@codemirror/commands": "^6.10.0",
     "@codemirror/lang-css": "^6.3.1",
@@ -49,7 +49,7 @@
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.8",
     "@fsegurai/codemirror-theme-github-dark": "^6.2.3",
-    "@lobehub/icons-static-svg": "^1.73.0",
+    "@lobehub/icons-static-svg": "^1.74.0",
     "@moinfra/mcp-client-sdk": "^1.10.1-dev",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.6.2",
     "@svgr/webpack": "^8.1.0",
@@ -118,7 +118,7 @@
   "devDependencies": {
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
-    "electron": "^39.2.4",
+    "electron": "^39.2.5",
     "electron-builder": "^26.0.12",
     "globals": "^16.5.0",
     "wait-on": "^9.0.3",
