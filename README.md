@@ -2,7 +2,7 @@
 
 RPI is a desktop/web application designed to help developers test, improve, and manage prompts for large language models (LLMs). It provides a user-friendly interface for creating test cases, evaluating prompt performance, and storing contexts for reuse.
 
-<img width="451" height="199" alt="easy" src="https://github.com/user-attachments/assets/d6f416c0-2f84-4f6d-a319-183250f26c72" />
+![easy](https://github.com/user-attachments/assets/d6f416c0-2f84-4f6d-a319-183250f26c72)
 
 ## Features
 
