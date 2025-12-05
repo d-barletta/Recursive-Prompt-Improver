@@ -87,12 +87,6 @@ const ChatMessage = ({
           {!!avgTokens && (
             <span className="chat-message__tokens"> · {avgTokens.toLocaleString()} tokens</span>
           )}
-          {isTruncated && (
-            <span className="chat-message__truncated" title="Response was truncated due to max tokens limit">
-              {" "}
-              · <Warning size={12} /> Truncated
-            </span>
-          )}
         </div>
         <Tile className="chat-message__bubble">
           {/* Display image previews if present */}
@@ -152,6 +146,16 @@ const ChatMessage = ({
             </div>
           )}
         </Tile>
+        {isTruncated && (
+          <div className="chat-message__actions">
+            <span
+              className="chat-message__truncated"
+              title="Response was truncated due to max tokens limit"
+            >
+              <Warning size={12} /> Truncated due to max tokens limit
+            </span>
+          </div>
+        )}
         {/* Action buttons for user messages */}
         {isUser && (
           <div className="chat-message__actions">
