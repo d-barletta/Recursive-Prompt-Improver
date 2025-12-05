@@ -323,6 +323,7 @@ export const AI_API = {
       let buffer = "";
       let fullContent = "";
       let functionCalls = [];
+      let finishReason = null;
 
       try {
         while (true) {
@@ -354,6 +355,14 @@ export const AI_API = {
               }
 
               const candidate = data.candidates?.[0];
+
+              // Capture finishReason - Gemini uses "MAX_TOKENS" when output is truncated
+              if (candidate?.finishReason) {
+                // Map Gemini finishReason to OpenAI-compatible format
+                finishReason =
+                  candidate.finishReason === "MAX_TOKENS" ? "length" : candidate.finishReason;
+              }
+
               if (candidate?.content?.parts) {
                 candidate.content.parts.forEach((part) => {
                   // Handle text content
@@ -394,6 +403,7 @@ export const AI_API = {
               content: fullContent,
               tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
             },
+            finish_reason: finishReason,
           },
         ],
       };

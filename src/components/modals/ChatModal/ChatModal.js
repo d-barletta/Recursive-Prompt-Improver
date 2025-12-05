@@ -56,6 +56,7 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
   const lastScrollTime = useRef(0);
   const isUserScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef(null);
+  const isProgrammaticScrollRef = useRef(false);
 
   const { showSuccess, showError, showWarning } = useToast();
   const { confirm } = useConfirm();
@@ -130,19 +131,32 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
   );
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    isProgrammaticScrollRef.current = true;
+    const container = messagesContainerRef.current;
+    if (container) {
+      // Use direct scrollTop manipulation for immediate scroll during streaming
+      container.scrollTop = container.scrollHeight;
+    }
+    // Reset programmatic scroll flag after a short delay
+    setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+    }, 50);
   };
 
   const isAtBottom = () => {
     const container = messagesContainerRef.current;
     if (!container) return true;
-    // Check if user is within 50px of the bottom
-    return container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+    // Check if user is within 100px of the bottom (increased threshold for better detection)
+    return container.scrollHeight - container.scrollTop - container.clientHeight < 100;
   };
 
   const handleScroll = () => {
-    // Immediately disable auto-scroll when user starts scrolling
-    shouldAutoScrollRef.current = false;
+    // Ignore scroll events triggered by programmatic scrolling
+    if (isProgrammaticScrollRef.current) {
+      return;
+    }
+
+    // Mark as user scrolling
     isUserScrollingRef.current = true;
 
     // Clear any existing timeout
@@ -150,16 +164,13 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // After scrolling stops for 100ms, check if we should re-enable auto-scroll
+    // After scrolling stops for 150ms, check if we should update auto-scroll state
     scrollTimeoutRef.current = setTimeout(() => {
       isUserScrollingRef.current = false;
 
-      if (isAtBottom()) {
-        // User scrolled back to bottom, re-enable auto-scroll
-        shouldAutoScrollRef.current = true;
-      }
-      // If not at bottom, keep auto-scroll disabled (already set above)
-    }, 30);
+      // Re-enable or disable auto-scroll based on position
+      shouldAutoScrollRef.current = isAtBottom();
+    }, 150);
   };
 
   const handleStopGeneration = () => {
@@ -883,6 +894,7 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
                   toolName={msg.toolName}
                   avgTokens={msg.avgTokens}
                   ragResultsCount={msg.ragResultsCount}
+                  finishReason={msg.finishReason}
                   isLastMessage={isLastUserMessage}
                   isFirstMessage={index === 0}
                   isLoading={isLoading}

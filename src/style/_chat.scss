@@ -248,6 +248,16 @@
     font-weight: 500;
   }
 
+  &__truncated {
+    color: theme.$support-warning;
+    font-size: 0.7rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    cursor: help;
+  }
+
   &__images {
     display: flex;
     flex-wrap: wrap;

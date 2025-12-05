@@ -207,6 +207,7 @@ export const AI_API = {
       let buffer = "";
       let fullContent = "";
       let toolUseBlocks = [];
+      let stopReason = null;
 
       try {
         while (true) {
@@ -248,6 +249,10 @@ export const AI_API = {
                     partial_json: "",
                   };
                 }
+              } else if (data.type === "message_delta" && data.delta?.stop_reason) {
+                // Capture stop_reason from message_delta event
+                // Anthropic uses "max_tokens" as stop_reason when output is truncated
+                stopReason = data.delta.stop_reason;
               }
             } catch (parseError) {
               console.warn("Failed to parse SSE chunk:", parseError);
@@ -270,6 +275,10 @@ export const AI_API = {
           },
         }));
 
+      // Map Anthropic stop_reason to OpenAI-compatible finish_reason
+      // Anthropic uses "max_tokens", OpenAI uses "length"
+      const finishReason = stopReason === "max_tokens" ? "length" : stopReason;
+
       // Return complete response in standard format
       return {
         choices: [
@@ -278,6 +287,7 @@ export const AI_API = {
               content: fullContent,
               tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
             },
+            finish_reason: finishReason,
           },
         ],
       };
