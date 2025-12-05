@@ -232,6 +232,7 @@ export const AI_API = {
       let buffer = "";
       let fullContent = "";
       let toolCalls = [];
+      let finishReason = null;
 
       try {
         while (true) {
@@ -250,6 +251,11 @@ export const AI_API = {
             try {
               const jsonStr = trimmed.slice(6); // Remove "data: " prefix
               const data = JSON.parse(jsonStr);
+
+              // Capture finish_reason from the final chunk
+              if (data.choices?.[0]?.finish_reason) {
+                finishReason = data.choices[0].finish_reason;
+              }
 
               if (data.choices?.[0]?.delta) {
                 const delta = data.choices[0].delta;
@@ -303,6 +309,7 @@ export const AI_API = {
               content: fullContent,
               tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
             },
+            finish_reason: finishReason,
           },
         ],
       };

@@ -895,6 +895,7 @@ const CORE = {
           typeof response === "string" ? response : response?.choices?.[0]?.message?.content || "";
 
         const toolCalls = response?.choices?.[0]?.message?.tool_calls || [];
+        const finishReason = response?.choices?.[0]?.finish_reason;
 
         // Debug logging for tool calls received from API
         if (toolCalls.length > 0) {
@@ -916,6 +917,8 @@ const CORE = {
           role: ROLES.ASSISTANT,
           content: assistantMessageContent,
           toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+          // Include finish_reason to indicate if output was truncated due to max tokens
+          finishReason: finishReason,
         };
 
         currentMessages.push(responseMessage);

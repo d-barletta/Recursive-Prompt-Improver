@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ROLES } from "@utils/constants";
 import { Tile, IconButton, Button } from "@carbon/react";
-import { Copy, Cut, Restart, ChevronDown, ChevronUp } from "@carbon/icons-react";
+import { Copy, Cut, Restart, ChevronDown, ChevronUp, Warning } from "@carbon/icons-react";
 import MarkdownContent from "@components/shared/MarkdownContent";
 import { openHtmlPreview } from "@utils/internalBrowser";
 
@@ -13,6 +13,7 @@ const ChatMessage = ({
   toolName,
   avgTokens,
   ragResultsCount,
+  finishReason,
   isLastMessage,
   isFirstMessage,
   onKeepFromHere,
@@ -23,6 +24,7 @@ const ChatMessage = ({
   const isUser = role === ROLES.USER;
   const isTool = role === ROLES.TOOL;
   const isAssistant = role === ROLES.ASSISTANT;
+  const isTruncated = finishReason === "length";
 
   // State for tool message expand/collapse
   const [isExpanded, setIsExpanded] = useState(false);
@@ -144,6 +146,16 @@ const ChatMessage = ({
             </div>
           )}
         </Tile>
+        {isTruncated && (
+          <div className="chat-message__actions">
+            <span
+              className="chat-message__truncated"
+              title="Response was truncated due to max tokens limit"
+            >
+              <Warning size={12} /> Truncated due to max tokens limit
+            </span>
+          </div>
+        )}
         {/* Action buttons for user messages */}
         {isUser && (
           <div className="chat-message__actions">
