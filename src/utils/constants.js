@@ -685,17 +685,17 @@ export const API_ENDPOINTS = {
 export const VALIDATION = {
   MAX_TOKENS: {
     MIN: 1,
-    MAX: 120000,
+    MAX: 240000,
     STEP: 1000,
   },
   TIME_LIMIT: {
     MIN: 1000,
-    MAX: 60000,
+    MAX: 180000,
     STEP: 1000,
   },
   MAX_TOOL_ITERATIONS: {
     MIN: 1,
-    MAX: 10,
+    MAX: 50,
     STEP: 1,
   },
 };

@@ -23,7 +23,7 @@ const GlobalSettingsSection = ({
       <Column lg={8} md={4} sm={4}>
         <NumberInput
           id="max_tokens"
-          label="Max Tokens to generate per call"
+          label={`Max Tokens per call (${VALIDATION.MAX_TOKENS.MIN}-${VALIDATION.MAX_TOKENS.MAX})`}
           min={VALIDATION.MAX_TOKENS.MIN}
           max={VALIDATION.MAX_TOKENS.MAX}
           value={settings.max_tokens}
@@ -34,7 +34,7 @@ const GlobalSettingsSection = ({
       <Column lg={8} md={4} sm={4}>
         <NumberInput
           id="time_limit"
-          label="Time Limit (ms) per call"
+          label={`Time Limit (ms) per call (${VALIDATION.TIME_LIMIT.MIN}-${VALIDATION.TIME_LIMIT.MAX})`}
           min={VALIDATION.TIME_LIMIT.MIN}
           max={VALIDATION.TIME_LIMIT.MAX}
           value={settings.time_limit}
@@ -61,7 +61,7 @@ const GlobalSettingsSection = ({
       <Column lg={8} md={4} sm={4}>
         <NumberInput
           id="maxToolIterations"
-          label="Max Iterations (chat)"
+          label={`Max Iterations (chat) (${VALIDATION.MAX_TOOL_ITERATIONS.MIN}-${VALIDATION.MAX_TOOL_ITERATIONS.MAX})`}
           min={VALIDATION.MAX_TOOL_ITERATIONS.MIN}
           max={VALIDATION.MAX_TOOL_ITERATIONS.MAX}
           step={VALIDATION.MAX_TOOL_ITERATIONS.STEP}
