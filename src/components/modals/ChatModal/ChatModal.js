@@ -24,6 +24,11 @@ import { RAG } from "@core/RAG";
 import { getDefaultEmbeddingModel } from "@components/FormComponent/FormComponent.utils";
 import { resizeImage, estimateImageTokens } from "@utils/fileUtils";
 
+// Scroll behavior constants
+const PROGRAMMATIC_SCROLL_RESET_DELAY = 50; // ms to wait before re-enabling user scroll detection
+const SCROLL_DEBOUNCE_DELAY = 150; // ms to wait after scroll stops before checking position
+const SCROLL_BOTTOM_THRESHOLD = 100; // px from bottom to consider "at bottom"
+
 const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) => {
   const [messages, setMessages] = useState(formData?.chatMessages || []);
   const [partialMessRole, setPartialMessRole] = useState(ROLES.ASSISTANT);
@@ -140,14 +145,14 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
     // Reset programmatic scroll flag after a short delay
     setTimeout(() => {
       isProgrammaticScrollRef.current = false;
-    }, 50);
+    }, PROGRAMMATIC_SCROLL_RESET_DELAY);
   };
 
   const isAtBottom = () => {
     const container = messagesContainerRef.current;
     if (!container) return true;
-    // Check if user is within 100px of the bottom (increased threshold for better detection)
-    return container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+    // Check if user is within threshold of the bottom
+    return container.scrollHeight - container.scrollTop - container.clientHeight < SCROLL_BOTTOM_THRESHOLD;
   };
 
   const handleScroll = () => {
@@ -164,13 +169,13 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // After scrolling stops for 150ms, check if we should update auto-scroll state
+    // After scrolling stops, check if we should update auto-scroll state
     scrollTimeoutRef.current = setTimeout(() => {
       isUserScrollingRef.current = false;
 
       // Re-enable or disable auto-scroll based on position
       shouldAutoScrollRef.current = isAtBottom();
-    }, 150);
+    }, SCROLL_DEBOUNCE_DELAY);
   };
 
   const handleStopGeneration = () => {
