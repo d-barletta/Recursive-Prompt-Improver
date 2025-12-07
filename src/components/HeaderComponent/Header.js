@@ -1,19 +1,11 @@
 import React, { useState, useEffect, useMemo, memo } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  Header,
-  HeaderContainer,
-  HeaderName,
-  HeaderNavigation,
-  HeaderMenuItem,
-  HeaderMenuButton,
-  HeaderSideNavItems,
-  InlineLoading,
-  SideNav,
-  SideNavItems,
-  Tooltip,
-} from "@carbon/react";
-import { WarningFilled, NetworkPublic, Wifi } from "@carbon/react/icons";
+import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/spinner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, AlertTriangle, Wifi, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useLoading } from "@context/LoadingContext";
 import { useSettings } from "@context/SettingsContext";
 import { useKnowledge } from "@context/KnowledgeContext";
@@ -23,9 +15,22 @@ import { getExposedServerStatus, getExposedServerConfig } from "@core/MCP";
 const KnowledgeMenuItem = memo(({ isCurrentPage }) => {
   const { isAnyIndexing } = useKnowledge();
   return (
-    <HeaderMenuItem element={Link} to="/knowledge" isCurrentPage={isCurrentPage}>
-      {isAnyIndexing ? <InlineLoading description="Indexing" status="active" /> : "Knowledge"}
-    </HeaderMenuItem>
+    <Link
+      to="/knowledge"
+      className={cn(
+        "text-sm font-medium transition-colors hover:text-primary px-4 py-2 flex items-center gap-2",
+        isCurrentPage ? "text-primary" : "text-muted-foreground"
+      )}
+    >
+      {isAnyIndexing ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Indexing
+        </>
+      ) : (
+        "Knowledge"
+      )}
+    </Link>
   );
 });
 
@@ -33,9 +38,16 @@ const KnowledgeMenuItem = memo(({ isCurrentPage }) => {
 const KnowledgeSideNavItem = memo(() => {
   const { isAnyIndexing } = useKnowledge();
   return (
-    <HeaderMenuItem element={Link} to="/knowledge">
-      {isAnyIndexing ? <InlineLoading description="Indexing" status="active" /> : "Knowledge"}
-    </HeaderMenuItem>
+    <Link to="/knowledge" className="text-sm font-medium transition-colors hover:text-primary flex items-center gap-2 py-2">
+      {isAnyIndexing ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Indexing
+        </>
+      ) : (
+        "Knowledge"
+      )}
+    </Link>
   );
 });
 
@@ -84,108 +96,148 @@ const AppHeader = () => {
   const mcpIndicator = useMemo(() => {
     if (!mcpServerStatus.isRunning) return null;
     return (
-      <Tooltip
-        align="bottom"
-        label={`MCP Server on port ${mcpServerStatus.port} (${mcpServerStatus.toolCount} tool${mcpServerStatus.toolCount !== 1 ? "s" : ""})`}
-      >
-        <span className="mcp-server-indicator attention-pulse">
-          <Wifi size={10} color="#fff" />
-        </span>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="mcp-server-indicator attention-pulse">
+              <Wifi className="h-3 w-3 text-white" />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            MCP Server on port {mcpServerStatus.port} ({mcpServerStatus.toolCount} tool{mcpServerStatus.toolCount !== 1 ? "s" : ""})
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }, [mcpServerStatus.isRunning, mcpServerStatus.port, mcpServerStatus.toolCount]);
 
+  const [isSideNavOpen, setIsSideNavOpen] = useState(false);
+
   return (
-    <HeaderContainer
-      render={({ isSideNavExpanded, onClickSideNavExpand }) => (
-        <Header aria-label="RPI App">
-          <HeaderMenuButton
-            aria-label={isSideNavExpanded ? "Close menu" : "Open menu"}
-            onClick={onClickSideNavExpand}
-            isActive={isSideNavExpanded}
-            aria-expanded={isSideNavExpanded}
-          />
-          <HeaderName element={Link} to="/" prefix=" ">
-            RPI
-          </HeaderName>
-          <HeaderNavigation aria-label="RPI App">
-            <HeaderMenuItem
-              element={Link}
-              to="/"
-              isCurrentPage={location.pathname === "/" || location.pathname === "/sessions"}
-            >
-              {isLoading ? <InlineLoading description={"Running"} status="active" /> : "Run"}
-            </HeaderMenuItem>
-            <HeaderMenuItem
-              element={Link}
-              to="/agents"
-              isCurrentPage={location.pathname === "/agents"}
-            >
-              Agents
-            </HeaderMenuItem>
-            <HeaderMenuItem
-              element={Link}
-              to="/conversations"
-              isCurrentPage={location.pathname === "/conversations"}
-            >
-              Conversations
-            </HeaderMenuItem>
-            <KnowledgeMenuItem isCurrentPage={location.pathname === "/knowledge"} />
-            <HeaderMenuItem
-              element={Link}
-              to="/tools"
-              isCurrentPage={location.pathname === "/tools"}
-            >
-              Tools
-            </HeaderMenuItem>
-            <HeaderMenuItem element={Link} to="/mcp" isCurrentPage={location.pathname === "/mcp"}>
-              {mcpIndicator}
-              MCP
-            </HeaderMenuItem>
-            <HeaderMenuItem
-              element={Link}
-              to="/settings"
-              isCurrentPage={location.pathname === "/settings"}
-            >
-              {hasNoProviders && <WarningFilled size={16} className="header-warning-icon" />}
-              Settings
-            </HeaderMenuItem>
-          </HeaderNavigation>
-          <SideNav
-            aria-label="Side navigation"
-            expanded={isSideNavExpanded}
-            isPersistent={false}
-            onSideNavBlur={onClickSideNavExpand}
-          >
-            <SideNavItems>
-              <HeaderSideNavItems>
-                <HeaderMenuItem element={Link} to="/">
-                  {isLoading ? <InlineLoading description={"Running"} status="active" /> : "Run"}
-                </HeaderMenuItem>
-                <HeaderMenuItem element={Link} to="/agents">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
+        <Sheet open={isSideNavOpen} onOpenChange={setIsSideNavOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="mr-2 md:hidden">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left">
+            <nav className="flex flex-col gap-4">
+              <Link
+                to="/"
+                className="text-lg font-semibold flex items-center gap-2"
+                onClick={() => setIsSideNavOpen(false)}
+              >
+                RPI
+              </Link>
+              <div className="flex flex-col gap-2">
+                <Link to="/" className="py-2" onClick={() => setIsSideNavOpen(false)}>
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Running
+                    </span>
+                  ) : (
+                    "Run"
+                  )}
+                </Link>
+                <Link to="/agents" className="py-2" onClick={() => setIsSideNavOpen(false)}>
                   Agents
-                </HeaderMenuItem>
-                <HeaderMenuItem element={Link} to="/conversations">
+                </Link>
+                <Link to="/conversations" className="py-2" onClick={() => setIsSideNavOpen(false)}>
                   Conversations
-                </HeaderMenuItem>
-                <HeaderMenuItem element={Link} to="/tools">
+                </Link>
+                <Link to="/tools" className="py-2" onClick={() => setIsSideNavOpen(false)}>
                   Tools
-                </HeaderMenuItem>
+                </Link>
                 <KnowledgeSideNavItem />
-                <HeaderMenuItem element={Link} to="/mcp">
+                <Link to="/mcp" className="py-2 flex items-center gap-2" onClick={() => setIsSideNavOpen(false)}>
                   {mcpIndicator}
                   MCP
-                </HeaderMenuItem>
-                <HeaderMenuItem element={Link} to="/settings">
-                  {hasNoProviders && <WarningFilled size={16} className="header-warning-icon" />}
+                </Link>
+                <Link to="/settings" className="py-2 flex items-center gap-2" onClick={() => setIsSideNavOpen(false)}>
+                  {hasNoProviders && <AlertTriangle className="h-4 w-4 text-yellow-500" />}
                   Settings
-                </HeaderMenuItem>
-              </HeaderSideNavItems>
-            </SideNavItems>
-          </SideNav>
-        </Header>
-      )}
-    />
+                </Link>
+              </div>
+            </nav>
+          </SheetContent>
+        </Sheet>
+
+        <Link to="/" className="mr-6 flex items-center space-x-2">
+          <span className="font-bold">RPI</span>
+        </Link>
+
+        <nav className="hidden md:flex md:items-center md:gap-2 md:text-sm lg:gap-4">
+          <Link
+            to="/"
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-primary px-4 py-2 flex items-center gap-2",
+              (location.pathname === "/" || location.pathname === "/sessions") ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Running
+              </>
+            ) : (
+              "Run"
+            )}
+          </Link>
+          <Link
+            to="/agents"
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-primary px-4 py-2",
+              location.pathname === "/agents" ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            Agents
+          </Link>
+          <Link
+            to="/conversations"
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-primary px-4 py-2",
+              location.pathname === "/conversations" ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            Conversations
+          </Link>
+          <KnowledgeMenuItem isCurrentPage={location.pathname === "/knowledge"} />
+          <Link
+            to="/tools"
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-primary px-4 py-2",
+              location.pathname === "/tools" ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            Tools
+          </Link>
+          <Link
+            to="/mcp"
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-primary px-4 py-2 flex items-center gap-2",
+              location.pathname === "/mcp" ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            {mcpIndicator}
+            MCP
+          </Link>
+          <Link
+            to="/settings"
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-primary px-4 py-2 flex items-center gap-2",
+              location.pathname === "/settings" ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            {hasNoProviders && <AlertTriangle className="h-4 w-4 text-yellow-500" />}
+            Settings
+          </Link>
+        </nav>
+      </div>
+    </header>
   );
 };
 
