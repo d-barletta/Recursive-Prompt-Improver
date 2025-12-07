@@ -286,6 +286,7 @@ module.exports = function (webpackEnv) {
           "scheduler/tracing": "scheduler/tracing-profiling",
         }),
         // Custom path aliases for absolute imports
+        "@": path.resolve(paths.appSrc),
         "@api": path.resolve(paths.appSrc, "api"),
         "@assets": path.resolve(paths.appSrc, "assets"),
         "@components": path.resolve(paths.appSrc, "components"),

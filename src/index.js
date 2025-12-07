@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
-import { Theme, Content, Loading } from "@carbon/react";
+import { LoadingSpinner } from "@/components/ui/spinner";
 import AppHeader from "./components/HeaderComponent";
 import GlobalLoadingOverlay from "./components/shared/GlobalLoadingOverlay";
 import RunPage from "./pages/RunPage";
@@ -50,7 +50,7 @@ const AppContent = () => {
   if (!isAppReady) {
     return (
       <div className="app-initial-loader">
-        <Loading description="Loading..." withOverlay={false} />
+        <LoadingSpinner description="Loading..." />
       </div>
     );
   }
@@ -62,7 +62,7 @@ const AppContent = () => {
       <Router>
         <ToastProvider>
           <AppHeader />
-          <Content>
+          <main className="min-h-screen p-6">
             <Routes>
               <Route path="/" element={<RunPage />} />
               <Route path="/settings" element={<SettingsPage />} />
@@ -73,7 +73,7 @@ const AppContent = () => {
               <Route path="/knowledge" element={<KnowledgePage />} />
               <Route path="/mcp" element={<MCPPage />} />
             </Routes>
-          </Content>
+          </main>
           <ConfirmModal />
         </ToastProvider>
       </Router>
@@ -84,21 +84,19 @@ const AppContent = () => {
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <Theme theme="g100">
-      <div className="rpi">
-        <SettingsProvider>
-          <ConfirmProvider>
-            <PromptProvider>
-              <LoadingProvider>
-                <KnowledgeProvider>
-                  <AppContent />
-                </KnowledgeProvider>
-              </LoadingProvider>
-            </PromptProvider>
-          </ConfirmProvider>
-        </SettingsProvider>
-      </div>
-    </Theme>
+    <div className="rpi dark">
+      <SettingsProvider>
+        <ConfirmProvider>
+          <PromptProvider>
+            <LoadingProvider>
+              <KnowledgeProvider>
+                <AppContent />
+              </KnowledgeProvider>
+            </LoadingProvider>
+          </PromptProvider>
+        </ConfirmProvider>
+      </SettingsProvider>
+    </div>
   </React.StrictMode>
 );
 

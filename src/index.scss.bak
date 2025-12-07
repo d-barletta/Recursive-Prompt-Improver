@@ -1,0 +1,66 @@
+// Main SCSS index file - imports all modular style files
+
+// Variables and Carbon imports shared across all modules
+// All Carbon dependencies imported here with wildcard to be available everywhere
+@use "@carbon/react/scss/themes";
+@use "@carbon/react/scss/theme" with (
+  $theme: themes.$g100
+);
+@use "@carbon/react";
+@use "@carbon/layout";
+@use "@carbon/colors";
+@use "@carbon/styles";
+@use "@carbon/react/scss/spacing" as *;
+@use "@carbon/react/scss/theme" as *;
+@use "@carbon/react/scss/type" as *;
+
+// 2. Base styles
+@import "./style/base";
+
+// 3. Layout utilities
+@import "./style/layout";
+
+// 4. Spacing utilities (margins and padding)
+@import "./style/spacing";
+
+// 5. Sizing utilities (widths, heights, gaps)
+@import "./style/sizing";
+
+// 6. Component-specific styles
+@import "./style/components";
+
+// 6b. Advanced Multiselect component
+@import "./style/advanced-multiselect";
+
+// 6c. Advanced Select component (single selection)
+@import "./style/advanced-select";
+
+// 7. Code editors and JSON schema editor styles
+@import "./style/editors";
+
+// 8. Modal styles
+@import "./style/modals";
+
+// 9. Chat modal and message styles
+@import "./style/chat";
+
+// 10. Markdown content styles
+@import "./style/markdown";
+
+// 11. Settings page styles
+@import "./style/settings";
+
+// 12. Agents page styles
+@import "./style/agents";
+
+// 13. Knowledge page styles
+@import "./style/knowledge";
+
+// 14. Animation utilities and helper classes
+@import "./style/animations";
+
+// 15. Miscellaneous utilities and helper classes
+@import "./style/utilities";
+
+// 16. Rounded Carbon components
+//@import "./style/rounded";
