@@ -8,8 +8,6 @@ import {
   useConfirmDelete,
   useImportExport,
 } from "@hooks";
-import {
-  DataTable,
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -40,34 +38,6 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Pagination } from "@/components/ui/pagination";
-  Table,
-  TableHead,
-  TableRow,
-  TableHeader,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableExpandRow,
-  TableExpandedRow,
-  TableExpandHeader,
-  Button,
-  Grid,
-  Column,
-  Pagination,
-  Search,
-  OverflowMenu,
-  OverflowMenuItem,
-  Modal,
-  TextInput,
-  DataTableSkeleton,
-  Tile,
-  Toggle,
-  ComboBox,
-  InlineNotification,
-  Accordion,
-  AccordionItem,
-  CodeSnippet,
-} from "@replaced-carbon-imports";
 import {
   Trash2,
   Plus,
