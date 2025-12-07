@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { Modal, Button, InlineLoading, Dropdown, MultiSelect } from "@carbon/react";
 import {
-  Trash2,
+  TrashCan,
   FolderOpen,
   Play,
   Save,
   Book,
-  BookOpen,
+  NotebookReference,
   ArrowDown,
-} from "lucide-react";
+} from "@carbon/icons-react";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import UploadModal from "@components/modals/UploadModal";

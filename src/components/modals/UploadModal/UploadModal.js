@@ -1,6 +1,13 @@
 import React, { useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { FileText, FileType, File } from "lucide-react";
+import {
+  Modal,
+  FileUploaderDropContainer,
+  FileUploaderItem,
+  ProgressBar,
+  Tag,
+} from "@carbon/react";
+import { Document, DocumentPdf, DocumentBlank } from "@carbon/icons-react";
 import { formatFileSize } from "@utils/fileUtils";
 
 /**
