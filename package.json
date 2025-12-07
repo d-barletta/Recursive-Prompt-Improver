@@ -33,8 +33,6 @@
   "dependencies": {
     "@alexbruf/react-diff-viewer": "^3.1.5",
     "@babel/core": "^7.28.5",
-    "@carbon/icons-react": "^11.71.0",
-    "@carbon/react": "^1.97.0",
     "@codemirror/autocomplete": "^6.20.0",
     "@codemirror/commands": "^6.10.0",
     "@codemirror/lang-css": "^6.3.1",
