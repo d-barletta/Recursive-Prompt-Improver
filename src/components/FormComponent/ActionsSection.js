@@ -1,14 +1,13 @@
 import React from "react";
+import { Button } from "@/components/ui/button";
 import {
-  Column,
-  Button,
-  MenuButton,
-  MenuItem,
-  InlineNotification,
-  ActionableNotification,
-  MenuItemDivider,
-} from "@carbon/react";
-import { Play, Bot, Chat, Reset } from "@carbon/react/icons";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Play, Bot, MessageSquare, RotateCcw } from "lucide-react";
 import { isImproveDisabled, isFormValid, truncateText } from "@utils/uiUtils";
 
 const ActionsSection = ({
@@ -26,13 +25,12 @@ const ActionsSection = ({
   if (isLoading) return null;
 
   return (
-    <Column lg={16} md={8} sm={4} className="button-column">
+    <div className="button-column space-y-4">
       {isFormValid(settings, formData) ? (
         <Button
           type="submit"
-          kind="primary"
+          variant="default"
           size="md"
-          renderIcon={Play}
           disabled={
             isLoading ||
             !isFormValid(settings, formData) ||
@@ -40,6 +38,7 @@ const ActionsSection = ({
             fillingOutputIndex !== null
           }
         >
+          <Play className="mr-2 h-4 w-4" />
           {isLoading
             ? "Running..."
             : isImproveDisabled(formData?.improveMode)
@@ -49,58 +48,59 @@ const ActionsSection = ({
       ) : (
         <>
           {error?.length ? (
-            <InlineNotification
-              kind="error"
-              title="Error"
-              subtitle={truncateText(error, 200)}
-              lowContrast
-              hideCloseButton
-            />
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+              <h4 className="font-semibold text-destructive">Error</h4>
+              <p className="text-sm text-destructive">{truncateText(error, 200)}</p>
+            </div>
           ) : !settings.providers?.length ? (
-            <ActionableNotification
-              kind="warning"
-              title="Provider Required"
-              subtitle="Please add at least one provider."
-              actionButtonLabel="Go to Settings"
-              onActionButtonClick={() => onNavigate("/settings")}
-              lowContrast
-              hideCloseButton
-              inline
-            />
+            <div className="p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-md">
+              <h4 className="font-semibold text-yellow-900 dark:text-yellow-100">Provider Required</h4>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-2">Please add at least one provider.</p>
+              <Button size="sm" variant="outline" onClick={() => onNavigate("/settings")}>
+                Go to Settings
+              </Button>
+            </div>
           ) : (
-            <InlineNotification
-              kind="info"
-              title="Important"
-              subtitle={"Fill in all required fields to test"}
-              lowContrast
-              hideCloseButton
-            />
+            <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-100">Important</h4>
+              <p className="text-sm text-blue-700 dark:text-blue-300">Fill in all required fields to test</p>
+            </div>
           )}
         </>
       )}
-      <MenuButton
-        kind="tertiary"
-        size="md"
-        label="Actions"
-        menuTarget={document.querySelector(".rpi")}
-        disabled={isLoading || isImprovingPrompt || fillingOutputIndex !== null}
-      >
-        <MenuItem
-          label="Chat"
-          renderIcon={Chat}
-          onClick={onChat}
-          disabled={!settings?.providers?.length || !formData.instructions?.length}
-        />
-        <MenuItem
-          label="Save as agent"
-          renderIcon={Bot}
-          onClick={onSaveAsAgent}
-          disabled={!settings?.providers?.length || !formData.instructions?.length}
-        />
-        <MenuItemDivider />
-        <MenuItem label="Clear Form" renderIcon={Reset} onClick={onClearForm} kind="danger" />
-      </MenuButton>
-    </Column>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="md"
+            disabled={isLoading || isImprovingPrompt || fillingOutputIndex !== null}
+          >
+            Actions
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem
+            onClick={onChat}
+            disabled={!settings?.providers?.length || !formData.instructions?.length}
+          >
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Chat
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={onSaveAsAgent}
+            disabled={!settings?.providers?.length || !formData.instructions?.length}
+          >
+            <Bot className="mr-2 h-4 w-4" />
+            Save as agent
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onClearForm} className="text-destructive">
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Clear Form
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 };
 
