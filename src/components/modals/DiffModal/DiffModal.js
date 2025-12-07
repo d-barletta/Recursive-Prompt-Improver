@@ -1,5 +1,10 @@
 import React from "react";
-import { Modal } from "@carbon/react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import ReactDiffViewer from "@alexbruf/react-diff-viewer";
 import "@alexbruf/react-diff-viewer/index.css";
 
@@ -18,28 +23,26 @@ const DiffModal = ({
   compareMethod = "diffWords",
 }) => {
   return (
-    <Modal
-      open={isOpen}
-      onRequestClose={onClose}
-      passiveModal
-      modalHeading={title}
-      size="lg"
-      preventCloseOnClickOutside
-    >
-      <div style={{ marginTop: "1rem" }}>
-        <ReactDiffViewer
-          showDiffOnly={showDiffOnly}
-          hideLineNumbers={hideLineNumbers}
-          useDarkTheme={useDarkTheme}
-          oldValue={oldValue}
-          newValue={newValue}
-          //   leftTitle={oldLabel}
-          //   rightTitle={newLabel}
-          splitView={splitView}
-          compareMethod={compareMethod}
-        />
-      </div>
-    </Modal>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[90vw] max-h-[90vh]" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="mt-4 overflow-auto">
+          <ReactDiffViewer
+            showDiffOnly={showDiffOnly}
+            hideLineNumbers={hideLineNumbers}
+            useDarkTheme={useDarkTheme}
+            oldValue={oldValue}
+            newValue={newValue}
+            //   leftTitle={oldLabel}
+            //   rightTitle={newLabel}
+            splitView={splitView}
+            compareMethod={compareMethod}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
