@@ -1,15 +1,5 @@
-import React, { useState, useEffect } from "react";
-import {
-  Modal,
-  Grid,
-  Column,
-  Dropdown,
-  TextInput,
-  PasswordInput,
-  Button,
-  InlineLoading,
-} from "@carbon/react";
-import { Renew, Add, Edit, TrashCan } from "@carbon/react/icons";
+import React, { useState, useEffect, useMemo } from "react";
+import { Plus, RotateCw, Edit, Trash2 } from "lucide-react";
 import { API_PROVIDERS, WATSONX_URLS } from "@utils/constants";
 import {
   getAvailableModels,
@@ -26,6 +16,12 @@ import { useHasFormChanges } from "@hooks";
 import { ProviderIcon } from "@components/SettingsComponent/SettingsComponent.utils";
 import { CapabilityTags } from "@components/shared";
 import CustomModelModal from "../CustomModelModal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 
 const ProviderModal = ({
   isOpen,
@@ -79,7 +75,10 @@ const ProviderModal = ({
   };
 
   // Handle provider type change in modal
-  const handleProviderTypeChange = (item) => {
+  const handleProviderTypeChange = (itemId) => {
+    const item = API_PROVIDERS.find(p => p.id === itemId);
+    if (!item) return;
+    
     const availableModels = getAvailableModels(item);
     const availableEmbeddings = getAvailableEmbeddings(item);
 
@@ -190,264 +189,271 @@ const ProviderModal = ({
   };
 
   return (
-    <Modal
-      open={isOpen}
-      onRequestClose={onClose}
-      modalHeading={editingProvider ? "Edit Provider" : "Add New Provider"}
-      primaryButtonText="Save"
-      secondaryButtonText="Cancel"
-      onRequestSubmit={handleSaveProvider}
-      primaryButtonDisabled={isFetchingModels || !isValidProvider || !hasFormChanges}
-      className="providerModal"
-      size="lg"
-      preventCloseOnClickOutside
-      selectorsFloatingMenus={[".customModelAdd"]}
-    >
-      <Grid style={{ gap: "1rem" }}>
-        <Column lg={8} md={4} sm={4}>
-          <Dropdown
-            id="provider-type"
-            titleText="Provider Type"
-            label="Select a provider type"
-            items={API_PROVIDERS}
-            selectedItem={API_PROVIDERS.find((p) => p.id === providerFormData.id) || null}
-            itemToString={(item) => item?.text || ""}
-            itemToElement={(item) =>
-              item ? (
-                <span className="provider-dropdown-item">
-                  <ProviderIcon providerId={item.id} size={16} />
-                  {item.text}
-                </span>
-              ) : (
-                ""
-              )
-            }
-            renderSelectedItem={(item) =>
-              item ? (
-                <span className="provider-dropdown-item">
-                  <ProviderIcon providerId={item.id} size={16} />
-                  {item.text}
-                </span>
-              ) : (
-                "Select a provider type"
-              )
-            }
-            onChange={({ selectedItem }) => handleProviderTypeChange(selectedItem)}
-            disabled={!!editingProvider}
-          />
-        </Column>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{editingProvider ? "Edit Provider" : "Add New Provider"}</DialogTitle>
+        </DialogHeader>
+        
+        <div className="grid gap-4 py-4">
+          {/* Provider Type */}
+          <div className="grid gap-2">
+            <Label htmlFor="provider-type">Provider Type</Label>
+            <Select
+              value={providerFormData.id}
+              onValueChange={handleProviderTypeChange}
+              disabled={!!editingProvider}
+            >
+              <SelectTrigger id="provider-type">
+                <SelectValue>
+                  {providerFormData.id ? (
+                    <span className="flex items-center gap-2">
+                      <ProviderIcon providerId={providerFormData.id} size={16} />
+                      {API_PROVIDERS.find(p => p.id === providerFormData.id)?.text}
+                    </span>
+                  ) : (
+                    "Select a provider type"
+                  )}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {API_PROVIDERS.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    <span className="flex items-center gap-2">
+                      <ProviderIcon providerId={item.id} size={16} />
+                      {item.text}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <Column lg={8} md={4} sm={4}>
-          <TextInput
-            id="provider-name"
-            labelText="Provider Name"
-            placeholder="e.g., My OpenAI Account"
-            value={providerFormData.name}
-            onChange={(e) =>
-              setProviderFormData({
-                ...providerFormData,
-                name: e.target.value,
-              })
-            }
-          />
-        </Column>
-
-        {providerFormData.id !== "ollama" && providerFormData.id !== "lmstudio" && (
-          <Column lg={16} md={8} sm={4}>
-            <PasswordInput
-              id="provider-apikey"
-              labelText={`${providerFormData.name} API Key`}
-              placeholder="Enter API key"
-              value={providerFormData.apiKey}
+          {/* Provider Name */}
+          <div className="grid gap-2">
+            <Label htmlFor="provider-name">Provider Name</Label>
+            <Input
+              id="provider-name"
+              placeholder="e.g., My OpenAI Account"
+              value={providerFormData.name}
               onChange={(e) =>
                 setProviderFormData({
                   ...providerFormData,
-                  apiKey: e.target.value,
+                  name: e.target.value,
                 })
               }
             />
-          </Column>
-        )}
+          </div>
 
-        {providerFormData.id === "watsonx" && (
-          <>
-            <Column lg={8} md={4} sm={4}>
-              <TextInput
-                id="provider-projectid"
-                labelText="WatsonX Project ID"
-                placeholder="Enter project ID"
-                value={providerFormData.projectId}
+          {/* API Key (for non-local providers) */}
+          {providerFormData.id !== "ollama" && providerFormData.id !== "lmstudio" && (
+            <div className="grid gap-2">
+              <Label htmlFor="provider-apikey">{providerFormData.name} API Key</Label>
+              <Input
+                id="provider-apikey"
+                type="password"
+                placeholder="Enter API key"
+                value={providerFormData.apiKey}
                 onChange={(e) =>
                   setProviderFormData({
                     ...providerFormData,
-                    projectId: e.target.value,
+                    apiKey: e.target.value,
                   })
                 }
               />
-            </Column>
-            <Column lg={8} md={4} sm={4}>
-              <Dropdown
-                id="provider-watsonxurl"
-                titleText="WatsonX Region"
-                label="Select a region"
-                items={WATSONX_URLS}
-                selectedItem={providerFormData.watsonxUrl || null}
-                itemToString={(item) => item?.text || ""}
-                onChange={({ selectedItem }) =>
-                  setProviderFormData({
-                    ...providerFormData,
-                    watsonxUrl: selectedItem,
-                  })
-                }
-              />
-            </Column>
-          </>
-        )}
+            </div>
+          )}
 
-        {providerFormData.id === "ollama" && (
-          <Column lg={16} md={8} sm={4}>
-            <TextInput
-              id="provider-ollamaurl"
-              labelText="Ollama Server URL"
-              placeholder="http://localhost:11434"
-              value={providerFormData.ollamaUrl}
-              onChange={(e) =>
-                setProviderFormData({
-                  ...providerFormData,
-                  ollamaUrl: e.target.value,
-                })
-              }
-            />
-          </Column>
-        )}
+          {/* WatsonX specific fields */}
+          {providerFormData.id === "watsonx" && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="provider-projectid">WatsonX Project ID</Label>
+                <Input
+                  id="provider-projectid"
+                  placeholder="Enter project ID"
+                  value={providerFormData.projectId}
+                  onChange={(e) =>
+                    setProviderFormData({
+                      ...providerFormData,
+                      projectId: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="provider-watsonxurl">WatsonX Region</Label>
+                <Select
+                  value={providerFormData.watsonxUrl?.id}
+                  onValueChange={(val) =>
+                    setProviderFormData({
+                      ...providerFormData,
+                      watsonxUrl: WATSONX_URLS.find(u => u.id === val),
+                    })
+                  }
+                >
+                  <SelectTrigger id="provider-watsonxurl">
+                    <SelectValue placeholder="Select a region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {WATSONX_URLS.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.text}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
 
-        {providerFormData.id === "lmstudio" && (
-          <Column lg={16} md={8} sm={4}>
-            <TextInput
-              id="provider-lmstudiourl"
-              labelText="LM Studio Server URL"
-              placeholder="http://localhost:1234/v1"
-              helperText="LM Studio runs a local OpenAI-compatible server (default port: 1234)"
-              value={providerFormData.lmstudioUrl}
-              onChange={(e) =>
-                setProviderFormData({
-                  ...providerFormData,
-                  lmstudioUrl: e.target.value,
-                })
-              }
-            />
-          </Column>
-        )}
-
-        {providerFormData.id === "azure" && (
-          <>
-            <Column lg={16} md={8} sm={4}>
-              <TextInput
-                id="provider-azureendpoint"
-                labelText="Azure OpenAI Endpoint"
-                placeholder="https://your-resource.openai.azure.com"
-                helperText="Your Azure OpenAI resource endpoint URL"
-                value={providerFormData.azureEndpoint}
+          {/* Ollama URL */}
+          {providerFormData.id === "ollama" && (
+            <div className="grid gap-2">
+              <Label htmlFor="provider-ollamaurl">Ollama Server URL</Label>
+              <Input
+                id="provider-ollamaurl"
+                placeholder="http://localhost:11434"
+                value={providerFormData.ollamaUrl}
                 onChange={(e) =>
                   setProviderFormData({
                     ...providerFormData,
-                    azureEndpoint: e.target.value,
+                    ollamaUrl: e.target.value,
                   })
                 }
               />
-            </Column>
-            <Column lg={8} md={4} sm={4}>
-              <TextInput
-                id="provider-azureapiversion"
-                labelText="API Version"
-                placeholder="2024-02-15-preview"
-                helperText="Azure OpenAI API version"
-                value={providerFormData.azureApiVersion || "2024-02-15-preview"}
+            </div>
+          )}
+
+          {/* LM Studio URL */}
+          {providerFormData.id === "lmstudio" && (
+            <div className="grid gap-2">
+              <Label htmlFor="provider-lmstudiourl">LM Studio Server URL</Label>
+              <Input
+                id="provider-lmstudiourl"
+                placeholder="http://localhost:1234/v1"
+                value={providerFormData.lmstudioUrl}
                 onChange={(e) =>
                   setProviderFormData({
                     ...providerFormData,
-                    azureApiVersion: e.target.value,
+                    lmstudioUrl: e.target.value,
                   })
                 }
               />
-            </Column>
-          </>
-        )}
+              <p className="text-sm text-muted-foreground">
+                LM Studio runs a local OpenAI-compatible server (default port: 1234)
+              </p>
+            </div>
+          )}
 
-        {providerFormData.id === "openaicompat" && (
-          <Column lg={16} md={8} sm={4}>
-            <TextInput
-              id="provider-openaicompaturl"
-              labelText="OpenAI Compatible Endpoint URL"
-              placeholder="http://localhost:8080/v1"
-              helperText="The base URL of your OpenAI-compatible API (e.g., LocalAI, vLLM, text-generation-webui)"
-              value={providerFormData.openaiCompatUrl}
-              onChange={(e) =>
-                setProviderFormData({
-                  ...providerFormData,
-                  openaiCompatUrl: e.target.value,
-                })
-              }
-            />
-          </Column>
-        )}
+          {/* Azure specific fields */}
+          {providerFormData.id === "azure" && (
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="provider-azureendpoint">Azure OpenAI Endpoint</Label>
+                <Input
+                  id="provider-azureendpoint"
+                  placeholder="https://your-resource.openai.azure.com"
+                  value={providerFormData.azureEndpoint}
+                  onChange={(e) =>
+                    setProviderFormData({
+                      ...providerFormData,
+                      azureEndpoint: e.target.value,
+                    })
+                  }
+                />
+                <p className="text-sm text-muted-foreground">
+                  Your Azure OpenAI resource endpoint URL
+                </p>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="provider-azureapiversion">API Version</Label>
+                <Input
+                  id="provider-azureapiversion"
+                  placeholder="2024-02-15-preview"
+                  value={providerFormData.azureApiVersion || "2024-02-15-preview"}
+                  onChange={(e) =>
+                    setProviderFormData({
+                      ...providerFormData,
+                      azureApiVersion: e.target.value,
+                    })
+                  }
+                />
+                <p className="text-sm text-muted-foreground">
+                  Azure OpenAI API version
+                </p>
+              </div>
+            </div>
+          )}
 
-        <Column lg={16} md={8} sm={4}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "1rem",
-            }}
-          >
+          {/* OpenAI Compatible URL */}
+          {providerFormData.id === "openaicompat" && (
+            <div className="grid gap-2">
+              <Label htmlFor="provider-openaicompaturl">OpenAI Compatible Endpoint URL</Label>
+              <Input
+                id="provider-openaicompaturl"
+                placeholder="http://localhost:8080/v1"
+                value={providerFormData.openaiCompatUrl}
+                onChange={(e) =>
+                  setProviderFormData({
+                    ...providerFormData,
+                    openaiCompatUrl: e.target.value,
+                  })
+                }
+              />
+              <p className="text-sm text-muted-foreground">
+                The base URL of your OpenAI-compatible API (e.g., LocalAI, vLLM, text-generation-webui)
+              </p>
+            </div>
+          )}
+
+          {/* Fetch Models Button */}
+          <div className="flex items-center gap-4">
             <Button
-              kind="tertiary"
+              variant="outline"
               size="sm"
-              renderIcon={Renew}
               onClick={handleFetchModels}
               disabled={isFetchingModels}
             >
+              <RotateCw className="mr-2 h-4 w-4" />
               {isFetchingModels ? "Fetching..." : "Fetch Available Models"}
             </Button>
-            {isFetchingModels && <InlineLoading description="Fetching models..." />}
+            {isFetchingModels && <Spinner className="h-5 w-5" description="Fetching models..." />}
           </div>
-        </Column>
 
-        <Column lg={8} md={4} sm={4}>
-          <div className="model-dropdown-wrapper">
-            <Dropdown
-              id="provider-model"
-              titleText="Default Model"
-              label="Select a model"
-              items={providerFormData.availableModels || []}
-              selectedItem={providerFormData.selectedModel || null}
-              itemToString={(item) =>
-                item ? `${item.text}${item.isCustom ? " (Custom)" : ""}` : ""
-              }
-              itemToElement={(item) =>
-                item ? (
-                  <span className="model-dropdown-item">
-                    <span className="model-dropdown-name">
-                      {item.text}
-                      {item.isCustom ? " (Custom)" : ""}
-                    </span>
-                    <CapabilityTags
-                      supportsTools={item.supportsTools}
-                      supportsVision={item.supportsVision}
-                      supportsJsonOutput={item.supportsJsonOutput}
-                      className="model-dropdown-tags"
-                    />
-                  </span>
-                ) : null
-              }
-              disabled={isFetchingModels || !providerFormData?.availableModels?.length}
-              onChange={({ selectedItem }) =>
+          {/* Default Model */}
+          <div className="grid gap-2">
+            <Label htmlFor="provider-model">Default Model</Label>
+            <Select
+              value={providerFormData.selectedModel?.id}
+              onValueChange={(val) => {
+                const model = (providerFormData.availableModels || []).find(m => m.id === val);
                 setProviderFormData({
                   ...providerFormData,
-                  selectedModel: selectedItem,
-                })
-              }
-            />
+                  selectedModel: model,
+                });
+              }}
+              disabled={isFetchingModels || !providerFormData?.availableModels?.length}
+            >
+              <SelectTrigger id="provider-model">
+                <SelectValue placeholder="Select a model" />
+              </SelectTrigger>
+              <SelectContent>
+                {(providerFormData.availableModels || []).map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    <div className="flex items-center justify-between w-full">
+                      <span>{item.text}{item.isCustom ? " (Custom)" : ""}</span>
+                      <CapabilityTags
+                        supportsTools={item.supportsTools}
+                        supportsVision={item.supportsVision}
+                        supportsJsonOutput={item.supportsJsonOutput}
+                        className="ml-2"
+                      />
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {providerFormData.selectedModel &&
               !isFetchingModels &&
               providerFormData?.availableModels?.length && (
@@ -455,89 +461,108 @@ const ProviderModal = ({
                   supportsTools={providerFormData.selectedModel.supportsTools}
                   supportsVision={providerFormData.selectedModel.supportsVision}
                   supportsJsonOutput={providerFormData.selectedModel.supportsJsonOutput}
-                  className="model-selected-tags margin-top-0_65"
+                  className="mt-1"
                 />
               )}
           </div>
-        </Column>
 
-        <Column lg={8} md={4} sm={4}>
-          <Dropdown
-            id="provider-embedding"
-            titleText="Default Embedding Model"
-            label="Select an embedding model"
-            items={providerFormData.availableEmbeddings || []}
-            selectedItem={providerFormData.selectedEmbeddingModel || null}
-            itemToString={(item) => item?.text || ""}
-            disabled={isFetchingModels || !providerFormData?.availableEmbeddings?.length}
-            onChange={({ selectedItem }) =>
-              setProviderFormData({
-                ...providerFormData,
-                selectedEmbeddingModel: selectedItem,
-              })
-            }
-          />
-        </Column>
+          {/* Default Embedding Model */}
+          <div className="grid gap-2">
+            <Label htmlFor="provider-embedding">Default Embedding Model</Label>
+            <Select
+              value={providerFormData.selectedEmbeddingModel?.id}
+              onValueChange={(val) => {
+                const model = (providerFormData.availableEmbeddings || []).find(m => m.id === val);
+                setProviderFormData({
+                  ...providerFormData,
+                  selectedEmbeddingModel: model,
+                });
+              }}
+              disabled={isFetchingModels || !providerFormData?.availableEmbeddings?.length}
+            >
+              <SelectTrigger id="provider-embedding">
+                <SelectValue placeholder="Select an embedding model" />
+              </SelectTrigger>
+              <SelectContent>
+                {(providerFormData.availableEmbeddings || []).map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.text}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Custom Models Section */}
-        <Column lg={16} md={8} sm={4}>
-          <div className="custom-models-section">
-            <div className="custom-models-header">
-              <span className="custom-models-title">Custom Models</span>
+          {/* Custom Models Section */}
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <Label>Custom Models</Label>
               <Button
-                kind="ghost"
+                variant="ghost"
                 size="sm"
-                renderIcon={Add}
-                disabled={isFetchingModels || !providerFormData?.availableEmbeddings?.length}
                 onClick={handleAddCustomModel}
+                disabled={isFetchingModels || !providerFormData?.availableEmbeddings?.length}
               >
+                <Plus className="mr-2 h-4 w-4" />
                 Add Custom Model
               </Button>
             </div>
             {getCustomModels().length > 0 ? (
-              <div className="custom-models-list">
+              <div className="space-y-2">
                 {getCustomModels().map((model) => (
-                  <div key={model.id} className="custom-model-item">
-                    <div className="custom-model-info">
-                      <span className="custom-model-name">{model.text}</span>
-                      <span className="custom-model-id">({model.id})</span>
+                  <div key={model.id} className="flex items-center justify-between p-2 border rounded">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{model.text}</span>
+                        <span className="text-sm text-muted-foreground">({model.id})</span>
+                      </div>
                       <CapabilityTags
                         contextLength={model.contextLength}
                         supportsTools={model.supportsTools}
                         supportsVision={model.supportsVision}
                         supportsJsonOutput={model.supportsJsonOutput}
-                        className="custom-model-tags"
+                        className="mt-1"
                       />
                     </div>
-                    <div className="custom-model-actions">
+                    <div className="flex gap-2">
                       <Button
-                        kind="ghost"
+                        variant="ghost"
                         size="sm"
-                        hasIconOnly
-                        renderIcon={Edit}
-                        iconDescription="Edit model"
                         onClick={() => handleEditCustomModel(model)}
-                      />
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
                       <Button
-                        kind="ghost"
+                        variant="ghost"
                         size="sm"
-                        hasIconOnly
-                        renderIcon={TrashCan}
-                        iconDescription="Delete model"
                         onClick={() => handleDeleteCustomModel(model)}
-                      />
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <em className="custom-models-empty">
+              <p className="text-sm text-muted-foreground italic">
                 No custom models added. Click "Add Custom Model" to add models manually.
-              </em>
+              </p>
             )}
           </div>
-        </Column>
-      </Grid>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveProvider}
+            disabled={isFetchingModels || !isValidProvider || !hasFormChanges}
+          >
+            Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
 
       {/* Custom Model Modal */}
       <CustomModelModal
@@ -547,7 +572,7 @@ const ProviderModal = ({
         onSave={handleSaveCustomModel}
         existingModels={getAllModels()}
       />
-    </Modal>
+    </Dialog>
   );
 };
 
