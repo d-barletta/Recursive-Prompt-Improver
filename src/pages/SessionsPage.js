@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { blue40, gray30 } from "@carbon/colors";
 import { useToast } from "@context/ToastContext";
 import { useConfirm } from "@context/ConfirmContext";
 import {
@@ -12,34 +11,35 @@ import {
 } from "@hooks";
 import { truncateText } from "@utils/uiUtils";
 import ReactECharts from "echarts-for-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
-  DataTable,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Table,
-  TableHead,
-  TableRow,
-  TableHeader,
   TableBody,
   TableCell,
-  TableContainer,
-  Button,
-  Grid,
-  Column,
-  Pagination,
-  Search,
-  OverflowMenu,
-  OverflowMenuItem,
-  InlineLoading,
-  DataTableSkeleton,
-} from "@carbon/react";
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
+import { Pagination as UIPagination } from "@/components/ui/pagination";
 import {
-  View,
-  Menu,
-  SearchLocateMirror,
-  ChartAverage,
-  Play,
+  Eye,
+  MoreVertical,
+  Search as SearchIcon,
+  LineChart,
+  Play as PlayIcon,
   Download,
-  TrashCan,
-} from "@carbon/icons-react";
+  Trash2,
+} from "lucide-react";
 import {
   loadSessions,
   deleteSession,
@@ -193,7 +193,7 @@ const SessionsPage = () => {
         trigger: "axis",
         valueFormatter: (value) => `${value?.toFixed(2)}%`,
       },
-      color: [blue40, gray30],
+      color: ["#60a5fa", "#9ca3af"],
       grid: {
         left: "1%",
         right: "1%",
@@ -253,211 +253,172 @@ const SessionsPage = () => {
     return option;
   };
 
-  const rows = paginatedSessions.map((session) => ({
-    id: session.id.toString(),
-    timestamp: formatDate(session.timestamp),
-    model: session.coreModel ? (
-      <span className="flex-align-center gap-05">
-        <ProviderIcon providerId={session.coreModel.providerId} size={16} />
-        {session.coreModel.text || session.coreModel.originalText || "Unknown model"}
-      </span>
-    ) : (
-      "Unknown model"
-    ),
-    iterations:
-      session.improveMode === false ? (
-        <span title="Test only" className="chart-container">
-          {session.tests.map((tg) =>
-            tg.map((t, k) => <span key={k}>{t.isEqual ? "100% " : `${t.aiScore}% `}</span>)
-          )}
-        </span>
-      ) : (
-        <ReactECharts
-          theme="dark"
-          style={{ height: "30px", width: "220px" }}
-          option={getTestChartOpts(session)}
-        />
-      ),
-    instructions: (
-      <span title={session.instructions}>{truncateText(session.instructions, 20)}</span>
-    ),
-    actions: (
-      <div className="tableActionsContainer">
-        <div></div>
-        <div className="tableActionsDiv">
-          <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={View}
-            iconDescription="View"
-            hasIconOnly
-            tooltipPosition="top"
-            onClick={() => handleViewSession(session)}
-          >
-            View
-          </Button>
-          <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={Play}
-            iconDescription="Load"
-            hasIconOnly
-            tooltipPosition="top"
-            onClick={() => handleLoadSession(session)}
-            disabled={isLoading}
-          />
-          <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={Download}
-            iconDescription="Export"
-            hasIconOnly
-            tooltipPosition="top"
-            onClick={() => handleExportSession(session)}
-            disabled={isLoading}
-          />
-          <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={TrashCan}
-            iconDescription="Delete"
-            hasIconOnly
-            tooltipPosition="top"
-            onClick={() => handleDeleteSession(session.id)}
-            disabled={isLoading}
-          />
-        </div>
-      </div>
-    ),
-  }));
+  const sessionRows = paginatedSessions;
 
   return (
-    <div className="margin-bottom-2rem">
-      <div className="sessionsPage">
-        <h1 className="sectionTitle">Sessions</h1>
-        <div className="flex-center">
-          <Button
-            size="md"
-            renderIcon={Play}
-            kind="tertiary"
-            onClick={() => navigate("/")}
-            className="margin-right-1rem"
-          >
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Sessions</h1>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => navigate("/")}>
+            <PlayIcon className="mr-2 h-4 w-4" />
             Run
           </Button>
-          <Search
-            labelText="Search"
-            placeholder="Search in instructions or model"
-            onChange={handleSearchChange}
-            value={searchTerm}
-            size="md"
-            className=""
-            disabled={!sessions || !sessions.length}
-          />
-          <OverflowMenu
-            className="margin-left-1rem"
-            size="md"
-            flipped
-            aria-label="Sessions menu"
-            renderIcon={Menu}
-          >
-            <OverflowMenuItem itemText="Import session" onClick={handleImportSession} />
-            <OverflowMenuItem
-              hasDivider
-              itemText="Clear All Sessions"
-              onClick={handleClearAllSessions}
-              isDelete
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search in instructions or model"
+              onChange={(e) => handleSearchChange(e)}
+              value={searchTerm}
+              className="pl-9 w-80"
               disabled={!sessions || !sessions.length}
             />
-          </OverflowMenu>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleImportSession}>Import session</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleClearAllSessions}
+                disabled={!sessions || !sessions.length}
+                className="text-destructive"
+              >
+                Clear All Sessions
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-      <Grid className="row-gap-0">
-        <Column lg={16} md={8} sm={4}>
-          {isLoadingSessions ? (
-            <DataTableSkeleton
-              showHeader={false}
-              showToolbar={false}
-              headers={headers}
-              rowCount={pageSize}
-              columnCount={headers.length}
-            />
-          ) : !sessions || sessions.length === 0 ? (
-            <EmptyState
-              icon={ChartAverage}
-              title="No sessions yet"
-              description="Run some prompts to create sessions and view your prompt testing history."
-            />
-          ) : filteredSessions.length === 0 ? (
-            <EmptyState
-              icon={SearchLocateMirror}
-              title="No matching sessions"
-              description="No sessions match your search criteria. Try a different search term."
-            />
-          ) : (
-            <DataTable rows={rows} headers={headers}>
-              {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
-                <TableContainer>
-                  <Table {...getTableProps()}>
-                    <TableHead>
-                      <TableRow>
-                        {headers.map((header, idx) => (
-                          <TableHeader {...getHeaderProps({ header })} key={idx}>
-                            {header.header}
-                          </TableHeader>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {isLoading && (
-                        <TableRow key={"loading"}>
-                          {headers.map((h, i) => (
-                            <TableCell key={`${i}`}>
-                              {i === 0 && (
-                                <InlineLoading
-                                  description={"Session is running..."}
-                                  status="active"
-                                />
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
+
+      {isLoadingSessions ? (
+        <div className="space-y-3">
+          {Array.from({ length: pageSize }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
+      ) : !sessions || sessions.length === 0 ? (
+        <EmptyState
+          icon={LineChart}
+          title="No sessions yet"
+          description="Run some prompts to create sessions and view your prompt testing history."
+        />
+      ) : filteredSessions.length === 0 ? (
+        <EmptyState
+          icon={SearchIcon}
+          title="No matching sessions"
+          description="No sessions match your search criteria. Try a different search term."
+        />
+      ) : (
+        <>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Test Model</TableHead>
+                  <TableHead>Instructions</TableHead>
+                  <TableHead>Iterations / Test</TableHead>
+                  <TableHead className="w-40"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading && (
+                  <TableRow>
+                    <TableCell colSpan={5}>
+                      <div className="flex items-center gap-2">
+                        <Spinner className="h-4 w-4" />
+                        <span>Session is running...</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {sessionRows.map((session) => (
+                  <TableRow key={session.id}>
+                    <TableCell>{formatDate(session.timestamp)}</TableCell>
+                    <TableCell>
+                      {session.coreModel ? (
+                        <div className="flex items-center gap-2">
+                          <ProviderIcon providerId={session.coreModel.providerId} size={16} />
+                          <span>{session.coreModel.text || session.coreModel.originalText || "Unknown model"}</span>
+                        </div>
+                      ) : (
+                        "Unknown model"
                       )}
-                      {rows.map((row, idx) => (
-                        <TableRow {...getRowProps({ row })} key={idx}>
-                          {row.cells.map((cell) => (
-                            <TableCell key={cell.id}>{cell.value}</TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </DataTable>
-          )}
-        </Column>
-        {isLoadingSessions ||
-        !sessions ||
-        sessions.length === 0 ||
-        filteredSessions.length === 0 ? (
-          <></>
-        ) : (
-          <Column lg={16} md={8} sm={4}>
-            <Pagination
-              backwardText="Previous page"
-              forwardText="Next page"
-              itemsPerPageText="Items per page:"
-              pageNumberText="Page Number"
-              pageSize={pageSize}
-              pageSizes={[5, 10, 15, 25, 50]}
-              totalItems={totalItems}
-              page={currentPage}
-              onChange={handlePageChange}
-            />
-          </Column>
-        )}
-      </Grid>
+                    </TableCell>
+                    <TableCell>
+                      <span title={session.instructions}>{truncateText(session.instructions, 20)}</span>
+                    </TableCell>
+                    <TableCell>
+                      {session.improveMode === false ? (
+                        <span title="Test only" className="text-sm">
+                          {session.tests.map((tg) =>
+                            tg.map((t, k) => <span key={k}>{t.isEqual ? "100% " : `${t.aiScore}% `}</span>)
+                          )}
+                        </span>
+                      ) : (
+                        <ReactECharts
+                          theme="dark"
+                          style={{ height: "30px", width: "220px" }}
+                          option={getTestChartOpts(session)}
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewSession(session)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleLoadSession(session)}
+                          disabled={isLoading}
+                        >
+                          <PlayIcon className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleExportSession(session)}
+                          disabled={isLoading}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteSession(session.id)}
+                          disabled={isLoading}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <UIPagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(totalItems / pageSize)}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+            pageSizeOptions={[5, 10, 15, 25, 50]}
+          />
+        </>
+      )}
 
       <SessionDetailsModal
         isOpen={isModalOpen}
