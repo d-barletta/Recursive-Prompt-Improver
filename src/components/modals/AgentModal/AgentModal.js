@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  ComposedModal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  TextArea,
-  Toggle,
-  TextInput,
-  FormGroup,
-} from "@carbon/react";
+// All Carbon components already migrated to shadcn/ui
 import { useSettings } from "@context/SettingsContext";
 import { useToast } from "@context/ToastContext";
 import { usePrompt } from "@context/PromptContext";

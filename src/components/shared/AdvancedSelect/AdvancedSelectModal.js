@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { ComposedModal, ModalHeader, ModalBody } from "@carbon/react";
+// Carbon Modal components already migrated to shadcn/ui Dialog
 import AdvancedSelectTable from "./AdvancedSelectTable";
 
 /**

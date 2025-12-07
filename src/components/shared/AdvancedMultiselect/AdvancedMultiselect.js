@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Button, Tag } from "@carbon/react";
-import { ChevronDown } from "@carbon/icons-react";
+import { ChevronDown } from "lucide-react";
 import AdvancedMultiselectModal from "./AdvancedMultiselectModal";
 
 /**

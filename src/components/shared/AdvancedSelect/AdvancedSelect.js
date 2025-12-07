@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Button } from "@carbon/react";
-import { ChevronDown } from "@carbon/icons-react";
+import { ChevronDown } from "lucide-react";
 import AdvancedSelectModal from "./AdvancedSelectModal";
 import { ProviderIcon } from "@components/SettingsComponent/SettingsComponent.utils";
 

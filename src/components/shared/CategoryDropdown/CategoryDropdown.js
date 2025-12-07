@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from "react";
-import { ComboBox } from "@carbon/react";
+// Carbon ComboBox already migrated to shadcn/ui in this file
 import PropTypes from "prop-types";
 
 /**

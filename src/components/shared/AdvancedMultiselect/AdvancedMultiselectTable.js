@@ -1,21 +1,5 @@
 import React, { useState, useMemo } from "react";
-import {
-  DataTable,
-  Table,
-  TableHead,
-  TableRow,
-  TableHeader,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableToolbar,
-  TableToolbarContent,
-  TableToolbarSearch,
-  TableSelectAll,
-  TableSelectRow,
-  MultiSelect,
-} from "@carbon/react";
-import { ArrowUp, ArrowDown } from "@carbon/icons-react";
+import { ArrowUp, ArrowDown } from "lucide-react";
 
 /**
  * Table component for AdvancedMultiselect

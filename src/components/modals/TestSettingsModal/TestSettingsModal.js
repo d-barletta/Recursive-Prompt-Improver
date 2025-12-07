@@ -1,18 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  Modal,
-  Dropdown,
-  FormGroup,
-  MultiSelect,
-  Grid,
-  Column,
-  Toggle,
-  Accordion,
-  AccordionItem,
-  TextInput,
-  IconButton,
-} from "@carbon/react";
-import { Image as ImageIcon, Close } from "@carbon/icons-react";
+import { ImageIcon, X } from "lucide-react";
 import { CHECK_TYPE_ITEMS, CHECK_TYPES, DEFAULT_CHECK_TYPES } from "@utils/constants";
 import { useSettings } from "@context/SettingsContext";
 import { useHasFormChanges } from "@hooks";

@@ -1,19 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import {
-  DataTable,
-  Table,
-  TableHead,
-  TableRow,
-  TableHeader,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableToolbar,
-  TableToolbarContent,
-  TableToolbarSearch,
-  RadioButton,
-  MultiSelect,
-} from "@carbon/react";
+// Carbon DataTable components already migrated to shadcn/ui Table
 import { ProviderIcon } from "@components/SettingsComponent/SettingsComponent.utils";
 import CapabilityTags from "../CapabilityTags";
 

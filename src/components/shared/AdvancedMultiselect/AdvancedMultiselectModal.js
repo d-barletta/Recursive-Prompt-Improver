@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
-import { ComposedModal, ModalHeader, ModalBody, ModalFooter, Button } from "@carbon/react";
+// Carbon Modal components already migrated to shadcn/ui Dialog
 import AdvancedMultiselectTable from "./AdvancedMultiselectTable";
 
 /**

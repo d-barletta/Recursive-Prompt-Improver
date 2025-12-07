@@ -1,15 +1,7 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { useToast } from "@context/ToastContext";
 import { useLoading } from "@context/LoadingContext";
-import {
-  Modal,
-  CodeSnippet,
-  Grid,
-  Column,
-  Accordion,
-  AccordionItem,
-  InlineLoading,
-} from "@carbon/react";
+// All Carbon components already migrated to shadcn/ui
 import ReactECharts from "echarts-for-react";
 import ReactDiffViewer from "@alexbruf/react-diff-viewer";
 import "@alexbruf/react-diff-viewer/index.css";

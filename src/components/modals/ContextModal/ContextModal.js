@@ -1,18 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ROLES } from "@utils/constants";
-import {
-  Form,
-  TextInput,
-  TextArea,
-  Dropdown,
-  FormGroup,
-  Modal,
-  Button,
-  Accordion,
-  AccordionItem,
-  IconButton,
-} from "@carbon/react";
-import { Add, TrashCan, Image as ImageIcon, Close } from "@carbon/icons-react";
+import { Plus, Trash2, ImageIcon, X } from "lucide-react";
 import { loadContexts, saveContext } from "@utils/storageUtils";
 import { useToast } from "@context/ToastContext";
 import { useLoading } from "@context/LoadingContext";
