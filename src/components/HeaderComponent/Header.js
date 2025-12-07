@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, AlertTriangle, Wifi, Loader2 } from "lucide-react";
+import { Menu, AlertTriangle, Wifi, Loader2, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLoading } from "@context/LoadingContext";
 import { useSettings } from "@context/SettingsContext";
 import { useKnowledge } from "@context/KnowledgeContext";
+import { useTheme } from "@context/ThemeContext";
 import { getExposedServerStatus, getExposedServerConfig } from "@core/MCP";
 
 // Separate component for Knowledge menu item to isolate re-renders
@@ -55,6 +56,7 @@ const AppHeader = () => {
   const location = useLocation();
   const { isLoading } = useLoading();
   const { settings } = useSettings();
+  const { theme, toggleTheme } = useTheme();
   const [mcpServerStatus, setMcpServerStatus] = useState({ isRunning: false, port: null });
 
   const hasNoProviders = !settings.providers || settings.providers.length === 0;
@@ -161,6 +163,26 @@ const AppHeader = () => {
                   {hasNoProviders && <AlertTriangle className="h-4 w-4 text-yellow-500" />}
                   Settings
                 </Link>
+                <div className="pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleTheme}
+                    className="w-full justify-start"
+                  >
+                    {theme === "dark" ? (
+                      <>
+                        <Sun className="h-4 w-4 mr-2" />
+                        Light Mode
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="h-4 w-4 mr-2" />
+                        Dark Mode
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </nav>
           </SheetContent>
@@ -170,7 +192,7 @@ const AppHeader = () => {
           <span className="font-bold">RPI</span>
         </Link>
 
-        <nav className="hidden md:flex md:items-center md:gap-2 md:text-sm lg:gap-4">
+        <nav className="hidden md:flex md:items-center md:gap-2 md:text-sm lg:gap-4 md:flex-1">
           <Link
             to="/"
             className={cn(
@@ -236,6 +258,31 @@ const AppHeader = () => {
             Settings
           </Link>
         </nav>
+
+        <div className="ml-auto flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleTheme}
+                  className="h-9 w-9"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="h-4 w-4" />
+                  ) : (
+                    <Moon className="h-4 w-4" />
+                  )}
+                  <span className="sr-only">Toggle theme</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
     </header>
   );

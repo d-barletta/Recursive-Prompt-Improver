@@ -18,6 +18,7 @@ import { ConfirmProvider } from "./context/ConfirmContext";
 import { PromptProvider } from "./context/PromptContext";
 import { LoadingProvider } from "./context/LoadingContext";
 import { KnowledgeProvider } from "./context/KnowledgeContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import ConfirmModal from "./components/modals/ConfirmModal";
 import WelcomeModal from "./components/modals/WelcomeModal/WelcomeModal";
 import { registerToolExecutionHandler } from "@core/MCP";
@@ -85,17 +86,19 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <div className="rpi dark">
-      <SettingsProvider>
-        <ConfirmProvider>
-          <PromptProvider>
-            <LoadingProvider>
-              <KnowledgeProvider>
-                <AppContent />
-              </KnowledgeProvider>
-            </LoadingProvider>
-          </PromptProvider>
-        </ConfirmProvider>
-      </SettingsProvider>
+      <ThemeProvider>
+        <SettingsProvider>
+          <ConfirmProvider>
+            <PromptProvider>
+              <LoadingProvider>
+                <KnowledgeProvider>
+                  <AppContent />
+                </KnowledgeProvider>
+              </LoadingProvider>
+            </PromptProvider>
+          </ConfirmProvider>
+        </SettingsProvider>
+      </ThemeProvider>
     </div>
   </React.StrictMode>
 );
