@@ -1,7 +1,14 @@
 import React, { useEffect, useCallback, useState } from "react";
 import SettingsComponent from "@components/SettingsComponent/SettingsComponent";
-import { Button, OverflowMenu, OverflowMenuItem } from "@carbon/react";
-import { Add, Menu } from "@carbon/icons-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Plus, Menu } from "lucide-react";
 import { useSettings } from "@context/SettingsContext";
 import { useToast } from "@context/ToastContext";
 import { useConfirm } from "@context/ConfirmContext";
@@ -412,28 +419,41 @@ const SettingsPage = () => {
         <h1 className="sectionTitle">Settings</h1>
         <div className="flex-center">
           <Button
-            size="md"
-            renderIcon={Add}
-            kind="tertiary"
+            variant="ghost"
             onClick={() => handleAddProvider && handleAddProvider()}
             className="margin-right-1rem"
           >
+            <Plus className="mr-2 h-4 w-4" />
             Add Provider
           </Button>
-          <OverflowMenu size="md" flipped aria-label="Sessions menu" renderIcon={Menu}>
-            <OverflowMenuItem itemText="Export settings" onClick={handleExportSettings} />
-            {SHOW_IMPORT_SETTINGS && (
-              <OverflowMenuItem itemText="Import settings" onClick={handleImportSettings} />
-            )}
-            <OverflowMenuItem itemText="Export full backup" onClick={handleExportFullBackup} />
-            <OverflowMenuItem hasDivider itemText="Import" onClick={handleImportFullBackup} />
-            <OverflowMenuItem
-              hasDivider
-              itemText="Delete all data"
-              onClick={handleDeleteAllData}
-              isDelete
-            />
-          </OverflowMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExportSettings}>
+                Export settings
+              </DropdownMenuItem>
+              {SHOW_IMPORT_SETTINGS && (
+                <DropdownMenuItem onClick={handleImportSettings}>
+                  Import settings
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={handleExportFullBackup}>
+                Export full backup
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleImportFullBackup}>
+                Import
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleDeleteAllData} className="text-destructive">
+                Delete all data
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <SettingsComponent
