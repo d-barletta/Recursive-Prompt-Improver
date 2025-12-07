@@ -10,18 +10,33 @@ import {
 } from "@hooks";
 import { saveAgent } from "@utils/storageUtils";
 import { validateAgentName } from "@utils/uiUtils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
-  Button,
-  Grid,
-  Column,
-  PaginationNav,
-  Search,
-  OverflowMenu,
-  OverflowMenuItem,
-  Modal,
-  TextInput,
-} from "@carbon/react";
-import { Add, Menu, SearchLocateMirror, Bot } from "@carbon/icons-react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Plus, Menu, Search as SearchIcon, Bot } from "lucide-react";
 import AgentModal from "@components/modals/AgentModal";
 import ChatModal from "@components/modals/ChatModal";
 import { AgentCard, AgentCardSkeleton } from "@components/AgentsComponent";
@@ -202,43 +217,48 @@ const AgentsPage = () => {
         <h1 className="sectionTitle">Agents</h1>
         <div className="flex-center">
           <Button
-            size="md"
-            renderIcon={Add}
-            kind="tertiary"
+            size="default"
+            variant="secondary"
             onClick={openCreate}
             className="margin-right-1rem"
           >
+            <Plus className="mr-2 h-4 w-4" />
             New
           </Button>
-          <Search
-            labelText="Search"
-            placeholder="Search by ID, name, or instructions"
-            onChange={handleSearchChange}
-            value={searchTerm}
-            size="md"
-            className=""
-            disabled={!agents || !agents.length}
-          />
-          <OverflowMenu
-            className="margin-left-1rem"
-            size="md"
-            flipped
-            aria-label="Agents menu"
-            renderIcon={Menu}
-          >
-            <OverflowMenuItem itemText="Import agent" onClick={handleImportAgent} />
-            <OverflowMenuItem
-              hasDivider
-              itemText="Delete all agents"
-              onClick={handleClearAllAgents}
-              isDelete
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by ID, name, or instructions"
+              onChange={handleSearchChange}
+              value={searchTerm}
+              className="pl-9"
               disabled={!agents || !agents.length}
             />
-          </OverflowMenu>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="margin-left-1rem" aria-label="Agents menu">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleImportAgent}>
+                Import agent
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleClearAllAgents}
+                disabled={!agents || !agents.length}
+                className="text-destructive"
+              >
+                Delete all agents
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-      <Grid className="row-gap-0">
-        <Column lg={16} md={8} sm={4}>
+      <div className="row-gap-0">
+        <div className="w-full">
           {isLoading ? (
             <div className="agents-skeleton">
               {Array.from({ length: pageSize }).map((_, index) => (
@@ -253,7 +273,7 @@ const AgentsPage = () => {
             />
           ) : filteredAgents.length === 0 ? (
             <EmptyState
-              icon={SearchLocateMirror}
+              icon={SearchIcon}
               title="No matching agents"
               description="No agents match your search criteria. Try a different search term."
             />
@@ -285,22 +305,58 @@ const AgentsPage = () => {
               ))}
             </div>
           )}
-        </Column>
+        </div>
         {!isLoading &&
           agents &&
           agents.length > 0 &&
           filteredAgents.length > 0 &&
           Math.ceil(totalItems / pageSize) > 1 && (
-            <Column lg={16} md={8} sm={4} className="margin-top-2rem flex-center flex-justify">
-              <PaginationNav
-                itemsShown={5}
-                totalItems={Math.ceil(totalItems / pageSize)}
-                page={currentPage - 1}
-                onChange={(index) => handlePageChange({ page: index + 1, pageSize })}
-              />
-            </Column>
+            <div className="w-full margin-top-2rem flex-center flex-justify">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => currentPage > 1 && handlePageChange({ page: currentPage - 1, pageSize })}
+                      disabled={currentPage === 1}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: Math.min(5, Math.ceil(totalItems / pageSize)) }).map((_, i) => {
+                    const totalPages = Math.ceil(totalItems / pageSize);
+                    let pageNum = i + 1;
+                    
+                    // Smart pagination display logic
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          onClick={() => handlePageChange({ page: pageNum, pageSize })}
+                          isActive={currentPage === pageNum}
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => currentPage < Math.ceil(totalItems / pageSize) && handlePageChange({ page: currentPage + 1, pageSize })}
+                      disabled={currentPage === Math.ceil(totalItems / pageSize)}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           )}
-      </Grid>
+      </div>
 
       {/* Agent Modal */}
       <AgentModal
@@ -334,30 +390,52 @@ const AgentsPage = () => {
       />
 
       {/* Import Agent Modal */}
-      <Modal
-        size="sm"
+      <Dialog
         open={importModalOpen}
-        modalHeading="Import Agent"
-        primaryButtonText="Import"
-        secondaryButtonText="Cancel"
-        onRequestSubmit={handleSaveImportedAgent}
-        onRequestClose={() => {
-          setImportModalOpen(false);
-          setImportedAgent(null);
-          setImportAgentName("");
+        onOpenChange={(open) => {
+          if (!open) {
+            setImportModalOpen(false);
+            setImportedAgent(null);
+            setImportAgentName("");
+          }
         }}
       >
-        <p className="margin-bottom-1rem">Please provide a name for the imported agent:</p>
-        <TextInput
-          id="import-agent-name"
-          labelText="Agent Name"
-          placeholder="Enter a name for this agent"
-          value={importAgentName}
-          onChange={(e) => setImportAgentName(e.target.value)}
-          helperText="1-64 characters, must start with a letter, can contain letters, numbers, hyphens, and underscores"
-          required
-        />
-      </Modal>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Import Agent</DialogTitle>
+            <DialogDescription>
+              Please provide a name for the imported agent
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="import-agent-name">Agent Name</Label>
+              <Input
+                id="import-agent-name"
+                placeholder="Enter a name for this agent"
+                value={importAgentName}
+                onChange={(e) => setImportAgentName(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                1-64 characters, must start with a letter, can contain letters, numbers, hyphens, and underscores
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setImportModalOpen(false);
+                setImportedAgent(null);
+                setImportAgentName("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveImportedAgent}>Import</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
