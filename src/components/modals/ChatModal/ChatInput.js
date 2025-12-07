@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { IconButton, Button } from "@carbon/react";
-import { Send, Image as ImageIcon } from "@carbon/icons-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Send, Image as ImageIcon } from "lucide-react";
 import { ROLES } from "@utils/constants";
 import { SpeechTextArea } from "@components/shared";
 import { useToast } from "@context/ToastContext";
@@ -172,17 +173,20 @@ const ChatInput = ({
     >
       {supportsVision && (
         <div className="chat-input__media-button">
-          <IconButton
-            kind="ghost"
+          <Button
+            variant="ghost"
             size="lg"
             onClick={onOpenMediaUpload}
             disabled={isLoading}
-            label="Add images"
-            align="right"
-            badgeCount={attachedImages.length > 0 ? attachedImages.length : undefined}
+            className="relative"
           >
-            <ImageIcon />
-          </IconButton>
+            <ImageIcon className="h-5 w-5" />
+            {attachedImages.length > 0 && (
+              <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                {attachedImages.length}
+              </Badge>
+            )}
+          </Button>
         </div>
       )}
       <SpeechTextArea
@@ -199,7 +203,8 @@ const ChatInput = ({
         rows={1}
         showError={showError}
       />
-      <Button kind="ghost" size="lg" onClick={handleSend} disabled={sendDisabled} renderIcon={Send}>
+      <Button variant="ghost" size="lg" onClick={handleSend} disabled={sendDisabled}>
+        <Send className="mr-2 h-5 w-5" />
         Send
       </Button>
     </div>

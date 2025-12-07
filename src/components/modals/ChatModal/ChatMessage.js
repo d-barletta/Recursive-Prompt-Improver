@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ROLES } from "@utils/constants";
-import { Tile, IconButton, Button } from "@carbon/react";
-import { Copy, Cut, Restart, ChevronDown, ChevronUp, Warning } from "@carbon/icons-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Copy, Scissors, RotateCcw, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import MarkdownContent from "@components/shared/MarkdownContent";
 import { openHtmlPreview } from "@utils/internalBrowser";
 
@@ -88,7 +90,7 @@ const ChatMessage = ({
             <span className="chat-message__tokens"> · {avgTokens.toLocaleString()} tokens</span>
           )}
         </div>
-        <Tile className="chat-message__bubble">
+        <Card className="chat-message__bubble">
           {/* Display image previews if present */}
           {images && images.length > 0 && (
             <div className="chat-message__images">
@@ -116,12 +118,12 @@ const ChatMessage = ({
               </div>
               {needsExpand && (
                 <Button
-                  kind="ghost"
+                  variant="ghost"
                   size="sm"
                   onClick={() => setIsExpanded(!isExpanded)}
                   className="chat-message__expand-button"
-                  renderIcon={isExpanded ? ChevronUp : ChevronDown}
                 >
+                  {isExpanded ? <ChevronUp className="mr-2 h-4 w-4" /> : <ChevronDown className="mr-2 h-4 w-4" />}
                   {isExpanded ? "Collapse" : "See more"}
                 </Button>
               )}
@@ -145,53 +147,64 @@ const ChatMessage = ({
               ))}
             </div>
           )}
-        </Tile>
+        </Card>
         {isTruncated && (
           <div className="chat-message__actions">
             <span
-              className="chat-message__truncated"
+              className="chat-message__truncated flex items-center gap-1"
               title="Response was truncated due to max tokens limit"
             >
-              <Warning size={12} /> Truncated due to max tokens limit
+              <AlertTriangle className="h-3 w-3" /> Truncated due to max tokens limit
             </span>
           </div>
         )}
         {/* Action buttons for user messages */}
         {isUser && (
-          <div className="chat-message__actions">
-            {!isFirstMessage && (
-              <IconButton
-                kind="ghost"
-                size="sm"
-                label="Keep from here"
-                onClick={onKeepFromHere}
-                disabled={isLoading}
-                align="bottom"
-              >
-                <Cut />
-              </IconButton>
-            )}
-            <IconButton
-              kind="ghost"
-              size="sm"
-              label="Copy to input"
-              onClick={onCopy}
-              disabled={isLoading}
-              align="bottom"
-            >
-              <Copy />
-            </IconButton>
-            <IconButton
-              kind="ghost"
-              size="sm"
-              label={isLastMessage ? "Retry" : "Resend"}
-              onClick={onRetry}
-              disabled={isLoading}
-              align="bottom"
-            >
-              <Restart />
-            </IconButton>
-          </div>
+          <TooltipProvider>
+            <div className="chat-message__actions">
+              {!isFirstMessage && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={onKeepFromHere}
+                      disabled={isLoading}
+                    >
+                      <Scissors className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Keep from here</TooltipContent>
+                </Tooltip>
+              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onCopy}
+                    disabled={isLoading}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Copy to input</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onRetry}
+                    disabled={isLoading}
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{isLastMessage ? "Retry" : "Resend"}</TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         )}
       </div>
     </div>
