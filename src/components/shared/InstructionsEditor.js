@@ -1,13 +1,8 @@
 import React from "react";
-import {
-  FormGroup,
-  Button,
-  InlineLoading,
-  AILabel,
-  AILabelContent,
-  AILabelActions,
-} from "@carbon/react";
-import { MagicWandFilled, Undo, Redo, Compare } from "@carbon/react/icons";
+import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/spinner";
+import { Card, CardContent } from "@/components/ui/card";
+import { Wand2, Undo, Redo, GitCompare } from "lucide-react";
 import { SpeechTextArea } from "@components/shared";
 import { useToast } from "@context/ToastContext";
 
@@ -60,24 +55,23 @@ const InstructionsEditor = ({
   const isAIImproved = improvedInstructions !== null && instructions === improvedInstructions;
 
   return (
-    <FormGroup>
-      <div className="clearForm">
+    <div className="space-y-2">
+      <div className="flex items-center justify-between clearForm">
         {isImprovingPrompt ? (
-          <InlineLoading
+          <LoadingSpinner
             description={isGenerating ? "Generating instructions..." : "Improving instructions..."}
-            status="active"
           />
         ) : (
-          <>
+          <div className="flex items-center gap-2">
             {previousInstructions !== null && instructions === previousInstructions && (
               <Button
                 type="button"
-                kind="ghost"
+                variant="ghost"
                 size="sm"
                 onClick={onRedo}
                 disabled={isLoading || isImprovingPrompt}
-                renderIcon={Redo}
               >
+                <Redo className="mr-2 h-4 w-4" />
                 Redo
               </Button>
             )}
@@ -86,38 +80,38 @@ const InstructionsEditor = ({
               instructions !== previousInstructions && (
                 <Button
                   type="button"
-                  kind="ghost"
+                  variant="ghost"
                   size="sm"
                   onClick={onCompare}
                   disabled={isLoading || isImprovingPrompt}
-                  renderIcon={Compare}
                 >
+                  <GitCompare className="mr-2 h-4 w-4" />
                   Compare
                 </Button>
               )}
             {previousInstructions !== null && instructions !== previousInstructions && (
               <Button
                 type="button"
-                kind="ghost"
+                variant="ghost"
                 size="sm"
                 onClick={onUndo}
                 disabled={isLoading || isImprovingPrompt}
-                renderIcon={Undo}
               >
+                <Undo className="mr-2 h-4 w-4" />
                 Undo
               </Button>
             )}
             <Button
               type="button"
-              kind="ghost"
+              variant="ghost"
               size="sm"
               onClick={onImprove}
               disabled={isLoading || isImprovingPrompt || !hasProviders}
-              renderIcon={MagicWandFilled}
             >
+              <Wand2 className="mr-2 h-4 w-4" />
               {isGenerating ? "Generate" : "Improve"}
             </Button>
-          </>
+          </div>
         )}
       </div>
 
@@ -134,33 +128,33 @@ const InstructionsEditor = ({
         disabled={isLoading || isImprovingPrompt}
         decorator={
           isAIImproved ? (
-            <AILabel className="ai-label-container">
-              <AILabelContent>
+            <Card className="mt-2 border-primary">
+              <CardContent className="p-4">
                 <div>
-                  <h4 className="ai-label-heading">AI Generated</h4>
-                  <p className="secondary margin-top-1rem">
+                  <h4 className="font-semibold text-sm mb-2">AI Generated</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
                     These instructions were created or improved by AI.
                   </p>
-                  <p className="secondary margin-top-1rem">
+                  <p className="text-sm text-muted-foreground mb-4">
                     Use the Compare button to view the original version.
                   </p>
-                </div>
-                <AILabelActions>
                   <Button
                     onClick={onCompare}
                     disabled={isLoading || isImprovingPrompt}
-                    renderIcon={Compare}
+                    variant="outline"
+                    size="sm"
                   >
+                    <GitCompare className="mr-2 h-4 w-4" />
                     Compare
                   </Button>
-                </AILabelActions>
-              </AILabelContent>
-            </AILabel>
+                </div>
+              </CardContent>
+            </Card>
           ) : undefined
         }
         showError={showError}
       />
-    </FormGroup>
+    </div>
   );
 };
 

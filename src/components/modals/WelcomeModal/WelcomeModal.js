@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Modal, Button, InlineLoading } from "@carbon/react";
-import { Checkmark, ChevronRight, Upload } from "@carbon/icons-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/spinner";
+import { Check, ChevronRight, Upload } from "lucide-react";
 import Lottie from "lottie-react";
 import welcomeAnimation from "@assets/animations/welcome.json";
 import ollamaAnimation from "@assets/animations/ollama.json";
@@ -279,27 +286,29 @@ const WelcomeModal = ({ isOpen, onClose }) => {
     switch (step) {
       case STEPS.WELCOME:
         return (
-          <Button kind="tertiary" size="lg" renderIcon={ChevronRight} onClick={handleStart}>
+          <Button variant="ghost" size="lg" onClick={handleStart}>
             Let's start
+            <ChevronRight className="ml-2 h-5 w-5" />
           </Button>
         );
 
       case STEPS.OLLAMA_CHECK:
-        return <InlineLoading description="Checking your system..." />;
+        return <LoadingSpinner description="Checking your system..." />;
 
       case STEPS.OLLAMA_FOUND:
         return isSettingUpOllama ? (
-          <InlineLoading description="Using local Ollama..." />
+          <LoadingSpinner description="Using local Ollama..." />
         ) : (
           <div className="welcome-modal__options">
             <p className="welcome-modal__message">
               <strong>Ollama</strong> found on your system, would you like to use it?
             </p>
-            <div className="welcome-modal__buttons">
-              <Button kind="tertiary" size="lg" onClick={handleMaybeLater}>
+            <div className="welcome-modal__buttons flex gap-4">
+              <Button variant="ghost" size="lg" onClick={handleMaybeLater}>
                 Maybe later
               </Button>
-              <Button kind="primary" size="lg" renderIcon={Checkmark} onClick={handleUseOllama}>
+              <Button variant="default" size="lg" onClick={handleUseOllama}>
+                <Check className="mr-2 h-5 w-5" />
                 Yes
               </Button>
             </div>
@@ -307,21 +316,22 @@ const WelcomeModal = ({ isOpen, onClose }) => {
         );
 
       case STEPS.LMSTUDIO_CHECK:
-        return <InlineLoading description="Checking your system..." />;
+        return <LoadingSpinner description="Checking your system..." />;
 
       case STEPS.LMSTUDIO_FOUND:
         return isSettingUpLmstudio ? (
-          <InlineLoading description="Using local LM Studio..." />
+          <LoadingSpinner description="Using local LM Studio..." />
         ) : (
           <div className="welcome-modal__options">
             <p className="welcome-modal__message">
               <strong>LM Studio</strong> found on your system, would you like to use it?
             </p>
-            <div className="welcome-modal__buttons">
-              <Button kind="tertiary" size="lg" onClick={handleMaybeLaterLmstudio}>
+            <div className="welcome-modal__buttons flex gap-4">
+              <Button variant="ghost" size="lg" onClick={handleMaybeLaterLmstudio}>
                 Maybe later
               </Button>
-              <Button kind="primary" size="lg" renderIcon={Checkmark} onClick={handleUseLmstudio}>
+              <Button variant="default" size="lg" onClick={handleUseLmstudio}>
+                <Check className="mr-2 h-5 w-5" />
                 Yes
               </Button>
             </div>
@@ -330,17 +340,17 @@ const WelcomeModal = ({ isOpen, onClose }) => {
 
       case STEPS.BACKUP:
         if (isImporting) {
-          return <InlineLoading description="Importing backup..." />;
+          return <LoadingSpinner description="Importing backup..." />;
         }
         if (importError) {
           return (
             <div className="welcome-modal__options">
-              <InlineLoading status="error" description={importError} />
-              <div className="welcome-modal__buttons">
-                <Button kind="tertiary" size="lg" onClick={handleStartFresh}>
+              <div className="text-destructive text-sm mb-4">{importError}</div>
+              <div className="welcome-modal__buttons flex gap-4">
+                <Button variant="ghost" size="lg" onClick={handleStartFresh}>
                   Skip
                 </Button>
-                <Button kind="primary" size="lg" onClick={handleImportBackup}>
+                <Button variant="default" size="lg" onClick={handleImportBackup}>
                   Retry
                 </Button>
               </div>
@@ -350,11 +360,12 @@ const WelcomeModal = ({ isOpen, onClose }) => {
         return (
           <div className="welcome-modal__options">
             <p className="welcome-modal__message">Would you like to import a backup?</p>
-            <div className="welcome-modal__buttons">
-              <Button kind="tertiary" size="lg" onClick={handleStartFresh}>
+            <div className="welcome-modal__buttons flex gap-4">
+              <Button variant="ghost" size="lg" onClick={handleStartFresh}>
                 Not now
               </Button>
-              <Button kind="primary" size="lg" renderIcon={Upload} onClick={handleImportBackup}>
+              <Button variant="default" size="lg" onClick={handleImportBackup}>
+                <Upload className="mr-2 h-5 w-5" />
                 Import backup
               </Button>
             </div>
@@ -363,8 +374,9 @@ const WelcomeModal = ({ isOpen, onClose }) => {
 
       case STEPS.COMPLETE:
         return (
-          <Button kind="tertiary" size="lg" renderIcon={ChevronRight} onClick={handleComplete}>
+          <Button variant="ghost" size="lg" onClick={handleComplete}>
             All set up, let's go
+            <ChevronRight className="ml-2 h-5 w-5" />
           </Button>
         );
 
@@ -374,38 +386,35 @@ const WelcomeModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Modal
-      open={isOpen}
-      onRequestClose={() => {}}
-      modalHeading="Welcome to RPI"
-      passiveModal
-      size="lg"
-      className="welcome-modal"
-      preventCloseOnClickOutside={true}
-    >
-      <div className="welcome-modal__body">
-        <div
-          className={`welcome-modal__animation welcome-modal__animation--${step} ${isExiting ? "fly-away" : ""} ${hasTransitioned ? (isTransitioning ? "fade-out" : "fade-in") : ""}`}
-        >
-          {currentAnimation && (
-            <Lottie
-              key={step}
-              lottieRef={lottieRef}
-              animationData={currentAnimation}
-              loop={true}
-              autoplay={true}
-            />
-          )}
-        </div>
+    <Dialog open={isOpen} onOpenChange={() => {}}>
+      <DialogContent className="sm:max-w-[600px] welcome-modal" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogHeader>
+          <DialogTitle>Welcome to RPI</DialogTitle>
+        </DialogHeader>
+        <div className="welcome-modal__body">
+          <div
+            className={`welcome-modal__animation welcome-modal__animation--${step} ${isExiting ? "fly-away" : ""} ${hasTransitioned ? (isTransitioning ? "fade-out" : "fade-in") : ""}`}
+          >
+            {currentAnimation && (
+              <Lottie
+                key={step}
+                lottieRef={lottieRef}
+                animationData={currentAnimation}
+                loop={true}
+                autoplay={true}
+              />
+            )}
+          </div>
 
-        <div
-          key={step}
-          className={`welcome-modal__content ${isExiting ? "fly-away" : ""} ${hasTransitioned ? (isTransitioning ? "fade-out" : "fade-in") : ""}`}
-        >
-          {renderContent()}
+          <div
+            key={step}
+            className={`welcome-modal__content ${isExiting ? "fly-away" : ""} ${hasTransitioned ? (isTransitioning ? "fade-out" : "fade-in") : ""}`}
+          >
+            {renderContent()}
+          </div>
         </div>
-      </div>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 };
 
