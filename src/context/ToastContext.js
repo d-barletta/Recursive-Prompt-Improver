@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
-import { ToastNotification } from "@carbon/react";
 import { useNavigate } from "react-router-dom";
+import { Toaster } from "sonner";
+import { toast as sonnerToast } from "sonner";
 
 const ToastContext = createContext();
 
@@ -27,47 +28,51 @@ export const ToastProvider = ({ children }) => {
   };
 
   const showSuccess = (title, subtitle = "", timeout = 5000, linkTo = null, linkText = null) => {
-    addToast({
-      kind: "success",
-      title,
-      subtitle,
-      timeout,
-      linkTo,
-      linkText,
+    const message = subtitle ? `${title}\n${subtitle}` : title;
+    const toastId = sonnerToast.success(message, {
+      duration: timeout,
+      action: linkTo ? {
+        label: linkText || "View",
+        onClick: () => navigate(linkTo),
+      } : undefined,
     });
+    return toastId;
   };
 
   const showError = (title, subtitle = "", timeout = 8000, linkTo = null, linkText = null) => {
-    addToast({
-      kind: "error",
-      title,
-      subtitle,
-      timeout,
-      linkTo,
-      linkText,
+    const message = subtitle ? `${title}\n${subtitle}` : title;
+    const toastId = sonnerToast.error(message, {
+      duration: timeout,
+      action: linkTo ? {
+        label: linkText || "View",
+        onClick: () => navigate(linkTo),
+      } : undefined,
     });
+    return toastId;
   };
 
   const showWarning = (title, subtitle = "", timeout = 5000, linkTo = null, linkText = null) => {
-    addToast({
-      kind: "warning",
-      title,
-      subtitle,
-      timeout,
-      linkTo,
-      linkText,
+    const message = subtitle ? `${title}\n${subtitle}` : title;
+    const toastId = sonnerToast.warning(message, {
+      duration: timeout,
+      action: linkTo ? {
+        label: linkText || "View",
+        onClick: () => navigate(linkTo),
+      } : undefined,
     });
+    return toastId;
   };
 
   const showInfo = (title, subtitle = "", timeout = 2000, linkTo = null, linkText = null) => {
-    addToast({
-      kind: "info",
-      title,
-      subtitle,
-      timeout,
-      linkTo,
-      linkText,
+    const message = subtitle ? `${title}\n${subtitle}` : title;
+    const toastId = sonnerToast.info(message, {
+      duration: timeout,
+      action: linkTo ? {
+        label: linkText || "View",
+        onClick: () => navigate(linkTo),
+      } : undefined,
     });
+    return toastId;
   };
 
   return (
@@ -83,39 +88,7 @@ export const ToastProvider = ({ children }) => {
       }}
     >
       {children}
-      <div className="toastContainer">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={toast.linkTo ? "dynamic-cursor" : "cursor-default"}
-            onClick={() => {
-              if (toast.linkTo) {
-                navigate(toast.linkTo);
-              }
-            }}
-          >
-            <ToastNotification
-              lowContrast={true}
-              kind={toast.kind}
-              title={toast.title}
-              subtitle={toast.subtitle}
-              caption={toast.caption}
-              timeout={false} // We handle timeout ourselves
-              onClose={(e) => {
-                e.stopPropagation(); // Prevent navigation when clicking close button
-                removeToast(toast.id);
-              }}
-              className="min-width-300px"
-            >
-              {toast.linkTo && (
-                <span className="toast-link">
-                  {toast.linkText ? `${toast.linkText}` : "Click here to view"}
-                </span>
-              )}
-            </ToastNotification>
-          </div>
-        ))}
-      </div>
+      <Toaster position="top-right" richColors closeButton />
     </ToastContext.Provider>
   );
 };

@@ -1,5 +1,15 @@
 import React, { createContext, useContext, useState } from "react";
-import { Modal, TextInput } from "@carbon/react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { SpeechTextArea } from "@components/shared";
 
 const PromptContext = createContext();
@@ -104,47 +114,69 @@ export const PromptProvider = ({ children }) => {
   return (
     <PromptContext.Provider value={{ prompt }}>
       {children}
-      <Modal
-        open={isOpen}
-        modalHeading={config.title}
-        primaryButtonText={config.confirmText}
-        secondaryButtonText={config.cancelText}
-        onRequestSubmit={handleConfirm}
-        onRequestClose={handleCancel}
-        primaryButtonDisabled={!inputValue.trim() || !!validationError}
-        size="md"
-        selectorPrimaryFocus="#prompt-input"
-        className={config.className}
-        preventCloseOnClickOutside
-      >
-        {config.body && <p style={{ marginBottom: "1rem" }}>{config.body}</p>}
-        {config.rows === 1 ? (
-          <TextInput
-            id="prompt-input"
-            labelText=""
-            placeholder={config.placeholder}
-            value={inputValue}
-            onChange={(e) => handleInputChange(e.target.value)}
-            invalid={!!validationError}
-            invalidText={validationError}
-            helperText={config.helperText}
-            autoFocus
-          />
-        ) : (
-          <SpeechTextArea
-            id="prompt-input"
-            labelText=""
-            placeholder={config.placeholder}
-            value={inputValue}
-            onChange={(e) => handleInputChange(e.target.value)}
-            rows={config.rows}
-            invalid={!!validationError}
-            invalidText={validationError}
-            helperText={config.helperText}
-            autoFocus
-          />
-        )}
-      </Modal>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
+        <DialogContent className={`sm:max-w-[500px] ${config.className}`} onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>{config.title}</DialogTitle>
+            {config.body && <DialogDescription>{config.body}</DialogDescription>}
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {config.rows === 1 ? (
+              <div className="space-y-2">
+                <Input
+                  id="prompt-input"
+                  placeholder={config.placeholder}
+                  value={inputValue}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && inputValue.trim() && !validationError) {
+                      handleConfirm();
+                    }
+                  }}
+                />
+                {config.helperText && !validationError && (
+                  <p className="text-sm text-muted-foreground">{config.helperText}</p>
+                )}
+                {validationError && (
+                  <p className="text-sm text-destructive">{validationError}</p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <SpeechTextArea
+                  id="prompt-input"
+                  labelText=""
+                  placeholder={config.placeholder}
+                  value={inputValue}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  rows={config.rows}
+                  autoFocus
+                />
+                {config.helperText && !validationError && (
+                  <p className="text-sm text-muted-foreground">{config.helperText}</p>
+                )}
+                {validationError && (
+                  <p className="text-sm text-destructive">{validationError}</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancel}>
+              {config.cancelText}
+            </Button>
+            <Button 
+              onClick={handleConfirm}
+              disabled={!inputValue.trim() || !!validationError}
+            >
+              {config.confirmText}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PromptContext.Provider>
   );
 };
