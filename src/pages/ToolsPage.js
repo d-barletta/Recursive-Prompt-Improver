@@ -9,36 +9,43 @@ import {
   useImportExport,
 } from "@hooks";
 import { saveTool } from "@utils/storageUtils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  DataTable,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Table,
-  TableHead,
-  TableRow,
-  TableHeader,
   TableBody,
   TableCell,
-  TableContainer,
-  Button,
-  Grid,
-  Column,
-  Pagination,
-  Search,
-  OverflowMenu,
-  OverflowMenuItem,
-  Modal,
-  TextInput,
-  DataTableSkeleton,
-} from "@carbon/react";
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Pagination as UIPagination } from "@/components/ui/pagination";
 import {
-  TrashCan,
-  Add,
+  Trash2,
+  Plus,
   Edit,
-  Menu,
+  MoreVertical,
   Download,
-  Tools,
-  SearchLocateMirror,
-  Function,
-} from "@carbon/icons-react";
+  Wrench,
+  Search as SearchIcon,
+  FunctionSquare,
+} from "lucide-react";
 import ToolModal from "@components/modals/ToolModal";
 import EmptyState from "@components/shared/EmptyState";
 import { loadTools, deleteTool, clearAllTools } from "@utils/storageUtils";
@@ -173,174 +180,137 @@ const ToolsPage = () => {
     { key: "actions", header: "" },
   ];
 
-  const rows = paginatedTools.map((tool) => ({
-    id: tool.id.toString(),
-    timestamp: formatDate(tool.timestamp),
-    name: (
-      <span title={"Function"} style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        <Function size={16} style={{ opacity: "0.5" }} />
-        <span title={tool.description}>{truncateText(tool.name, 50)}</span>
-      </span>
-    ),
-    actions: (
-      <div className="tableActionsContainer">
-        <div></div>
-        <div className="tableActionsDiv">
-          <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={Edit}
-            iconDescription="Edit"
-            tooltipPosition="top"
-            hasIconOnly
-            onClick={() =>
-              openEdit({
-                id: tool.id,
-                type: tool.type,
-                name: tool.name,
-                description: tool.description,
-                parameters: tool.parameters,
-                functionCode: tool.functionCode,
-              })
-            }
-          >
-            Edit
-          </Button>
-          <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={Download}
-            iconDescription="Export"
-            tooltipPosition="top"
-            hasIconOnly
-            onClick={() => handleExportTool(tool)}
-          >
-            Export
-          </Button>
-          <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={TrashCan}
-            iconDescription="Delete"
-            tooltipPosition="top"
-            hasIconOnly
-            onClick={() => handleDeleteTool(tool.id)}
-          />
-        </div>
-      </div>
-    ),
-  }));
+  const toolRows = paginatedTools;
 
   return (
-    <div className="margin-bottom-2rem">
-      <div className="contextPage">
-        <h1 className="sectionTitle">Tools</h1>
-        <div className="flex-center">
-          <Button
-            size="md"
-            renderIcon={Add}
-            kind="tertiary"
-            onClick={openCreate}
-            className="margin-right-1rem"
-          >
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Tools</h1>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" />
             New
           </Button>
-          <Search
-            labelText="Search"
-            placeholder="Search by ID, name, or description"
-            onChange={handleSearchChange}
-            value={searchTerm}
-            size="md"
-            className=""
-            disabled={!tools || !tools.length}
-          />
-          <OverflowMenu
-            className="margin-left-1rem"
-            size="md"
-            flipped
-            aria-label="Tools menu"
-            renderIcon={Menu}
-          >
-            <OverflowMenuItem itemText="Import tool" onClick={handleImportTool} />
-            <OverflowMenuItem
-              hasDivider
-              itemText="Delete all tools"
-              onClick={handleClearAllTools}
-              isDelete
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by ID, name, or description"
+              onChange={(e) => handleSearchChange(e)}
+              value={searchTerm}
+              className="pl-9 w-80"
               disabled={!tools || !tools.length}
             />
-          </OverflowMenu>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleImportTool}>Import tool</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleClearAllTools}
+                disabled={!tools || !tools.length}
+                className="text-destructive"
+              >
+                Delete all tools
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-      <Grid className="row-gap-0">
-        <Column lg={16} md={8} sm={4}>
-          {isLoading ? (
-            <DataTableSkeleton
-              showHeader={false}
-              showToolbar={false}
-              headers={headers}
-              rowCount={pageSize}
-              columnCount={headers.length}
-            />
-          ) : !tools || tools.length === 0 ? (
-            <EmptyState
-              icon={Tools}
-              title="No tools yet"
-              description="Create a new tool to get started with custom functions and utilities."
-            />
-          ) : filteredTools.length === 0 ? (
-            <EmptyState
-              icon={SearchLocateMirror}
-              title="No matching tools"
-              description="No tools match your search criteria. Try a different search term."
-            />
-          ) : (
-            <DataTable rows={rows} headers={headers}>
-              {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
-                <TableContainer>
-                  <Table {...getTableProps()}>
-                    <TableHead>
-                      <TableRow>
-                        {headers.map((header, idx) => (
-                          <TableHeader {...getHeaderProps({ header })} key={`${idx}`}>
-                            {header.header}
-                          </TableHeader>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {rows.map((row, idx) => (
-                        <TableRow {...getRowProps({ row })} key={`${idx}`}>
-                          {row.cells.map((cell) => (
-                            <TableCell key={cell.id}>{cell.value}</TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </DataTable>
-          )}
-        </Column>
-        {isLoading || !tools || tools.length === 0 || filteredTools.length === 0 ? (
-          <></>
-        ) : (
-          <Column lg={16} md={8} sm={4}>
-            <Pagination
-              backwardText="Previous page"
-              forwardText="Next page"
-              itemsPerPageText="Items per page:"
-              pageNumberText="Page Number"
-              pageSize={pageSize}
-              pageSizes={[5, 10, 15, 25, 50]}
-              totalItems={totalItems}
-              page={currentPage}
-              onChange={handlePageChange}
-            />
-          </Column>
-        )}
-      </Grid>
+
+      {isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: pageSize }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
+      ) : !tools || tools.length === 0 ? (
+        <EmptyState
+          icon={Wrench}
+          title="No tools yet"
+          description="Create a new tool to get started with custom functions and utilities."
+        />
+      ) : filteredTools.length === 0 ? (
+        <EmptyState
+          icon={SearchIcon}
+          title="No matching tools"
+          description="No tools match your search criteria. Try a different search term."
+        />
+      ) : (
+        <>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Date Created</TableHead>
+                  <TableHead className="w-32"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {toolRows.map((tool) => (
+                  <TableRow key={tool.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <FunctionSquare className="h-4 w-4 text-muted-foreground" />
+                        <span title={tool.description}>{truncateText(tool.name, 50)}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatDate(tool.timestamp)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            openEdit({
+                              id: tool.id,
+                              type: tool.type,
+                              name: tool.name,
+                              description: tool.description,
+                              parameters: tool.parameters,
+                              functionCode: tool.functionCode,
+                            })
+                          }
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleExportTool(tool)}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteTool(tool.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <UIPagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(totalItems / pageSize)}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+            pageSizeOptions={[5, 10, 15, 25, 50]}
+          />
+        </>
+      )}
 
       {/* Tool Modal */}
       <ToolModal
@@ -352,30 +322,41 @@ const ToolsPage = () => {
       />
 
       {/* Import Tool Modal */}
-      <Modal
-        size="sm"
-        open={importModalOpen}
-        modalHeading="Import Tool"
-        primaryButtonText="Import"
-        secondaryButtonText="Cancel"
-        onRequestSubmit={handleSaveImportedTool}
-        onRequestClose={() => {
-          setImportModalOpen(false);
-          setImportedTool(null);
-          setImportToolName("");
-        }}
-        preventCloseOnClickOutside
-      >
-        <p className="margin-bottom-1rem">Please provide a name for the imported tool:</p>
-        <TextInput
-          id="import-tool-name"
-          labelText="Tool Name"
-          placeholder="Enter a name for this tool"
-          value={importToolName}
-          onChange={(e) => setImportToolName(e.target.value)}
-          required
-        />
-      </Modal>
+      <Dialog open={importModalOpen} onOpenChange={setImportModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Import Tool</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Please provide a name for the imported tool:
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="import-tool-name">Tool Name</Label>
+              <Input
+                id="import-tool-name"
+                placeholder="Enter a name for this tool"
+                value={importToolName}
+                onChange={(e) => setImportToolName(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setImportModalOpen(false);
+                setImportedTool(null);
+                setImportToolName("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveImportedTool}>Import</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
