@@ -1,5 +1,5 @@
 import React from "react";
-import { Loading } from "@carbon/react";
+import { LoadingSpinner } from "@/components/ui/spinner";
 import { useLoading } from "@context/LoadingContext";
 
 const GlobalLoadingOverlay = () => {
@@ -8,9 +8,13 @@ const GlobalLoadingOverlay = () => {
   if (!isGlobalLoading) return null;
 
   return (
-    <div className="global-loading-overlay">
-      <Loading description={globalLoadingMessage} withOverlay={false} />
-      {globalLoadingMessage && <p className="global-loading-message">{globalLoadingMessage}</p>}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-4 p-8 bg-card rounded-lg shadow-lg border">
+        <LoadingSpinner className="h-8 w-8" />
+        {globalLoadingMessage && (
+          <p className="text-sm text-muted-foreground text-center">{globalLoadingMessage}</p>
+        )}
+      </div>
     </div>
   );
 };

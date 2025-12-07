@@ -1,5 +1,13 @@
 import React from "react";
-import { Modal } from "@carbon/react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useConfirm } from "@context/ConfirmContext";
 
 const ConfirmModal = () => {
@@ -7,21 +15,29 @@ const ConfirmModal = () => {
     useConfirm();
 
   return (
-    <Modal
+    <Dialog
       open={isOpen}
-      modalHeading={title}
-      primaryButtonText={confirmText}
-      secondaryButtonText={cancelText}
-      onRequestSubmit={onConfirm}
-      onRequestClose={onCancel}
-      onSecondarySubmit={onCancel}
-      danger={variant === "danger"}
-      primaryButtonDisabled={false}
-      size="sm"
-      preventCloseOnClickOutside
+      onOpenChange={(open) => {
+        if (!open) onCancel();
+      }}
     >
-      <div className="margin-1rem-0">{typeof body === "string" ? <p>{body}</p> : body}</div>
-    </Modal>
+      <DialogContent className="sm:max-w-[425px]" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {typeof body === "string" ? body : <div>{body}</div>}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>
+            {cancelText}
+          </Button>
+          <Button variant={variant === "danger" ? "destructive" : "default"} onClick={onConfirm}>
+            {confirmText}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
