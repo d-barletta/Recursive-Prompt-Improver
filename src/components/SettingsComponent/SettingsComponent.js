@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Form, Grid, Column, FormGroup } from "@carbon/react";
 import { useSettings } from "@context/SettingsContext";
 import { useToast } from "@context/ToastContext";
 import { useLoading } from "@context/LoadingContext";
@@ -256,56 +255,50 @@ const SettingsComponent = ({ onAddProvider, restoreDefaultSettings }) => {
 
   return (
     <>
-      <Form onSubmit={handleSaveSettings}>
-        <Grid className="row-gap-1-5rem">
-          <Column lg={16} md={8} sm={4}>
-            <FormGroup>
-              <Grid>
-                {/* Providers Section */}
-                <ProvidersSection
-                  rows={rows}
-                  headers={PROVIDER_TABLE_HEADERS}
-                  settings={settings}
-                  onEditProvider={handleEditProvider}
-                  onDeleteProvider={handleDeleteProvider}
-                  onDefaultProviderChange={handleDefaultProviderChange}
-                />
+      <form onSubmit={handleSaveSettings} className="space-y-8">
+        <div className="space-y-6">
+          {/* Providers Section */}
+          <ProvidersSection
+            rows={rows}
+            headers={PROVIDER_TABLE_HEADERS}
+            settings={settings}
+            onEditProvider={handleEditProvider}
+            onDeleteProvider={handleDeleteProvider}
+            onDefaultProviderChange={handleDefaultProviderChange}
+          />
 
-                {/* Environment Variables Section */}
-                <EnvironmentVariablesSection
-                  environmentVariables={settings.environmentVariables}
-                  showEnvVarForm={showEnvVarForm}
-                  editingEnvVarIndex={editingEnvVarIndex}
-                  envVarKey={envVarKey}
-                  envVarValue={envVarValue}
-                  envVarKeyError={envVarKeyError}
-                  onAddEnvVar={handleAddEnvVar}
-                  onEditEnvVar={handleEditEnvVar}
-                  onDeleteEnvVar={handleDeleteEnvVar}
-                  onSaveEnvVar={handleSaveEnvVar}
-                  onCancelEnvVar={handleCancelEnvVar}
-                  onEnvVarKeyChange={handleEnvVarKeyChange}
-                  onEnvVarValueChange={handleEnvVarValueChange}
-                />
+          {/* Environment Variables Section */}
+          <EnvironmentVariablesSection
+            environmentVariables={settings.environmentVariables}
+            showEnvVarForm={showEnvVarForm}
+            editingEnvVarIndex={editingEnvVarIndex}
+            envVarKey={envVarKey}
+            envVarValue={envVarValue}
+            envVarKeyError={envVarKeyError}
+            onAddEnvVar={handleAddEnvVar}
+            onEditEnvVar={handleEditEnvVar}
+            onDeleteEnvVar={handleDeleteEnvVar}
+            onSaveEnvVar={handleSaveEnvVar}
+            onCancelEnvVar={handleCancelEnvVar}
+            onEnvVarKeyChange={handleEnvVarKeyChange}
+            onEnvVarValueChange={handleEnvVarValueChange}
+          />
 
-                {/* Global Settings Section */}
-                <GlobalSettingsSection
-                  settings={settings}
-                  isLoading={isLoading}
-                  hasUnsavedChanges={hasUnsavedChanges()}
-                  areGlobalSettingsAtDefault={areGlobalSettingsAtDefault()}
-                  onMaxTokensChange={handleMaxTokensChange}
-                  onTimeLimitChange={handleTimeLimitChange}
-                  onTemperatureChange={handleTemperatureChange}
-                  onMaxToolIterationsChange={handleMaxToolIterationsChange}
-                  onSaveSettings={handleSaveSettings}
-                  onRestoreDefaultSettings={restoreDefaultSettings}
-                />
-              </Grid>
-            </FormGroup>
-          </Column>
-        </Grid>
-      </Form>
+          {/* Global Settings Section */}
+          <GlobalSettingsSection
+            settings={settings}
+            isLoading={isLoading}
+            hasUnsavedChanges={hasUnsavedChanges()}
+            areGlobalSettingsAtDefault={areGlobalSettingsAtDefault()}
+            onMaxTokensChange={handleMaxTokensChange}
+            onTimeLimitChange={handleTimeLimitChange}
+            onTemperatureChange={handleTemperatureChange}
+            onMaxToolIterationsChange={handleMaxToolIterationsChange}
+            onSaveSettings={handleSaveSettings}
+            onRestoreDefaultSettings={restoreDefaultSettings}
+          />
+        </div>
+      </form>
 
       {/* Provider Modal */}
       <ProviderModal

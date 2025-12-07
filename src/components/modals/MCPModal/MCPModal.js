@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from "react";
 import {
-  ComposedModal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Form,
-  TextInput,
-  FormGroup,
-  Button,
-  InlineLoading,
-} from "@carbon/react";
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LoadingSpinner } from "@/components/ui/spinner";
 import { saveMCPServer, loadMCPServers } from "@utils/storageUtils";
 import { useToast } from "@context/ToastContext";
 import { useSettings } from "@context/SettingsContext";
 import { useHasFormChanges } from "@hooks";
 import * as MCP from "@core/MCP";
 import CodeEditor from "@components/shared/CodeEditor";
-import { Connect } from "@carbon/icons-react";
+import { Link, CheckCircle, XCircle } from "lucide-react";
 
 const MCPModal = ({ isOpen, onClose, editMode = false, initialServer = null, onSave }) => {
   const { showError, showSuccess } = useToast();
@@ -207,30 +207,29 @@ const MCPModal = ({ isOpen, onClose, editMode = false, initialServer = null, onS
   };
 
   return (
-    <ComposedModal
-      size="lg"
-      open={isOpen}
-      onClose={handleClose}
-      preventCloseOnClickOutside={hasChanges}
-    >
-      <ModalHeader title={editMode ? "Edit MCP Server" : "New MCP Server"} />
-      <ModalBody hasForm>
-        <Form>
-          <FormGroup legendText="">
-            <TextInput
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[700px]" onInteractOutside={(e) => hasChanges && e.preventDefault()}>
+        <DialogHeader>
+          <DialogTitle>{editMode ? "Edit MCP Server" : "New MCP Server"}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="mcp-name">Name (*)</Label>
+            <Input
               id="mcp-name"
-              labelText={"Name (*)"}
               placeholder="My MCP Server"
               value={currentServer.name}
               onChange={(e) => handleChange("name", e.target.value)}
-              invalid={!currentServer.name.trim() && currentServer.name !== ""}
-              invalidText="Name is required"
-              helperText="Must be unique"
             />
-          </FormGroup>
+            {!currentServer.name.trim() && currentServer.name !== "" && (
+              <p className="text-sm text-destructive">Name is required</p>
+            )}
+            <p className="text-sm text-muted-foreground">Must be unique</p>
+          </div>
 
-          <FormGroup legendText="" className="margin-top-1rem">
-            <label className="cds--label">Server URL (*)</label>
+          <div className="space-y-2">
+            <Label htmlFor="mcp-url">Server URL (*)</Label>
             <div className="code-editor-wrapper">
               <CodeEditor
                 value={currentServer.url}
@@ -240,11 +239,13 @@ const MCPModal = ({ isOpen, onClose, editMode = false, initialServer = null, onS
                 envVariables={settings.environmentVariables}
               />
             </div>
-            <div className="cds--form__helper-text">
+            <p className="text-sm text-muted-foreground">
               You can use environment variables like env.VAR_NAME
-            </div>
-          </FormGroup>
-          <FormGroup legendText="Headers (JSON)" className="margin-top-1rem">
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="mcp-headers">Headers (JSON)</Label>
             <div className="code-editor-wrapper">
               <CodeEditor
                 value={currentServer.headers}
@@ -255,48 +256,53 @@ const MCPModal = ({ isOpen, onClose, editMode = false, initialServer = null, onS
                 envVariables={settings.environmentVariables}
               />
             </div>
-            <div className="cds--form__helper-text">
+            <p className="text-sm text-muted-foreground">
               Optional headers as valid JSON. Use env.VAR_NAME inside quoted strings, e.g.{" "}
               {`{"Authorization": "Bearer env.API_KEY"}`}
-            </div>
-          </FormGroup>
+            </p>
+          </div>
 
-          <FormGroup legendText="">
-            <div className="flex-center" style={{ gap: "1rem", marginTop: "1rem" }}>
+          <div className="space-y-2">
+            <div className="flex items-center gap-4 mt-4">
               <Button
                 size="sm"
-                kind="tertiary"
-                renderIcon={Connect}
+                variant="outline"
                 onClick={handleTestConnection}
                 disabled={isTesting || !currentServer.url.trim()}
               >
+                <Link className="mr-2 h-4 w-4" />
                 {isTesting ? "Testing..." : "Test Connection"}
               </Button>
-              {isTesting && <InlineLoading description="Testing connection..." />}
+              {isTesting && <LoadingSpinner description="Testing connection..." />}
               {testResult && !isTesting && (
                 <>
                   {testResult.success ? (
-                    <InlineLoading
-                      status="finished"
-                      description={`Connected (${testResult.toolCount} tools)`}
-                    />
+                    <div className="flex items-center gap-2 text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="text-sm">Connected ({testResult.toolCount} tools)</span>
+                    </div>
                   ) : (
-                    <InlineLoading status="error" description={testResult.error} />
+                    <div className="flex items-center gap-2 text-destructive">
+                      <XCircle className="h-4 w-4" />
+                      <span className="text-sm">{testResult.error}</span>
+                    </div>
                   )}
                 </>
               )}
             </div>
-          </FormGroup>
-        </Form>
-      </ModalBody>
-      <ModalFooter
-        primaryButtonText={editMode ? "Update" : "Create"}
-        secondaryButtonText="Cancel"
-        onRequestSubmit={handleSave}
-        onRequestClose={handleClose}
-        primaryButtonDisabled={!isFormValid()} // || (!hasTestedSuccessfully && !editMode)}
-      />
-    </ComposedModal>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={!isFormValid()}>
+            {editMode ? "Update" : "Create"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
