@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
-// Carbon Modal components already migrated to shadcn/ui Dialog
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import AdvancedMultiselectTable from "./AdvancedMultiselectTable";
 
 /**
@@ -51,41 +58,38 @@ const AdvancedMultiselectModal = ({
   };
 
   const modalContent = (
-    <ComposedModal
-      size="md"
-      open={isOpen}
-      onClose={handleCancel}
-      className="advanced-multiselect-modal"
-      preventCloseOnClickOutside
-      selectorPrimaryFocus="#select-search"
-    >
-      <ModalHeader title={title} />
-      <ModalBody className="advanced-multiselect-modal__body">
-        <AdvancedMultiselectTable
-          items={items}
-          selectedItems={tempSelectedItems}
-          onSelectionChange={setTempSelectedItems}
-          itemToString={itemToString}
-          sortItems={sortItems}
-          columns={columns}
-          filterableColumns={filterableColumns}
-          onSelectAll={handleSelectAll}
-          onClearAll={handleClearAll}
-        />
-      </ModalBody>
-      <ModalFooter>
-        <Button kind="secondary" onClick={handleCancel}>
-          Cancel
-        </Button>
-        <Button kind="primary" onClick={handleApply}>
-          Apply ({tempSelectedItems.length})
-        </Button>
-      </ModalFooter>
-    </ComposedModal>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
+      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6">
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="px-6 flex-1 overflow-auto">
+          <AdvancedMultiselectTable
+            items={items}
+            selectedItems={tempSelectedItems}
+            onSelectionChange={setTempSelectedItems}
+            itemToString={itemToString}
+            sortItems={sortItems}
+            columns={columns}
+            filterableColumns={filterableColumns}
+            onSelectAll={handleSelectAll}
+            onClearAll={handleClearAll}
+          />
+        </div>
+        <DialogFooter className="px-6 pb-6">
+          <Button variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button onClick={handleApply}>
+            Apply ({tempSelectedItems.length})
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 
   // Render modal in a portal to avoid nesting issues
-  return ReactDOM.createPortal(modalContent, document.querySelector(".rpi"));
+  return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default AdvancedMultiselectModal;

@@ -1,6 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
-// Carbon Modal components already migrated to shadcn/ui Dialog
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import AdvancedSelectTable from "./AdvancedSelectTable";
 
 /**
@@ -27,32 +32,29 @@ const AdvancedSelectModal = ({
   };
 
   const modalContent = (
-    <ComposedModal
-      size="md"
-      open={isOpen}
-      onClose={onClose}
-      className="advanced-select-modal"
-      preventCloseOnClickOutside
-      selectorPrimaryFocus="#select-search"
-    >
-      <ModalHeader title={title} />
-      <ModalBody className="advanced-select-modal__body">
-        <AdvancedSelectTable
-          items={items}
-          selectedItem={selectedItem}
-          onItemSelect={handleItemSelect}
-          itemToString={itemToString}
-          sortItems={sortItems}
-          columns={columns}
-          filterableColumns={filterableColumns}
-          showProviderIcon={showProviderIcon}
-        />
-      </ModalBody>
-    </ComposedModal>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-3xl max-h-[80vh] p-0">
+        <DialogHeader className="px-6 pt-6">
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="px-6 pb-6 overflow-auto">
+          <AdvancedSelectTable
+            items={items}
+            selectedItem={selectedItem}
+            onItemSelect={handleItemSelect}
+            itemToString={itemToString}
+            sortItems={sortItems}
+            columns={columns}
+            filterableColumns={filterableColumns}
+            showProviderIcon={showProviderIcon}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 
   // Render modal in a portal to avoid nesting issues
-  return ReactDOM.createPortal(modalContent, document.querySelector(".rpi"));
+  return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default AdvancedSelectModal;

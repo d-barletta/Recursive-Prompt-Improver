@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import AdvancedSelectModal from "./AdvancedSelectModal";
 import { ProviderIcon } from "@components/SettingsComponent/SettingsComponent.utils";
 
@@ -82,27 +83,27 @@ const AdvancedSelect = ({
   };
 
   return (
-    <div className={`advanced-select ${disabled ? "disabled" : ""}`}>
+    <div className={`space-y-2 ${disabled ? "opacity-50" : ""}`}>
       {titleText && (
-        <label htmlFor={id} className={`cds--label ${disabled ? "cds--label--disabled" : ""}`}>
+        <label htmlFor={id} className={`text-sm font-medium ${disabled ? "text-gray-500" : "text-gray-200"}`}>
           {titleText}
         </label>
       )}
-      <div className="cds--dropdown">
-        <Button
-          id={id}
-          kind="tertiary"
-          size={size || "md"}
-          className={`advanced-select__button ${invalid ? "advanced-select__button--invalid" : ""}`}
-          onClick={handleOpenModal}
-          disabled={disabled}
-          renderIcon={ChevronDown}
-        >
+      <Button
+        id={id}
+        variant="outline"
+        size={size || "default"}
+        className={`w-full justify-between ${invalid ? "border-red-500" : ""}`}
+        onClick={handleOpenModal}
+        disabled={disabled}
+      >
+        <span className="flex items-center gap-2 overflow-hidden">
           {buttonContent}
-        </Button>
-      </div>
-      {helperText && !invalid && <div className="cds--form__helper-text">{helperText}</div>}
-      {invalid && invalidText && <div className="cds--form-requirement">{invalidText}</div>}
+        </span>
+        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+      </Button>
+      {helperText && !invalid && <div className="text-xs text-gray-400">{helperText}</div>}
+      {invalid && invalidText && <div className="text-xs text-red-400">{invalidText}</div>}
 
       <AdvancedSelectModal
         isOpen={isModalOpen}
