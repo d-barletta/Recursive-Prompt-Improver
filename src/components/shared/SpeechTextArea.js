@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
-import { TextArea, Button } from "@carbon/react";
-import { Microphone, MicrophoneFilled } from "@carbon/icons-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Mic, MicOff } from "lucide-react";
 import { startSpeechRecognition, isSpeechRecognitionSupported } from "@utils/speechUtils";
 
 /**
@@ -307,8 +308,8 @@ const SpeechTextArea = React.forwardRef((props, ref) => {
   }, []);
 
   return (
-    <div ref={containerRef} className="speech-textarea-container">
-      <TextArea
+    <div ref={containerRef} className="speech-textarea-container relative">
+      <Textarea
         ref={ref}
         value={value}
         onChange={onChange}
@@ -316,18 +317,18 @@ const SpeechTextArea = React.forwardRef((props, ref) => {
         {...textAreaProps}
       />
       <div
-        className={`speech-textarea-mic-button ${isListening ? "speech-textarea-mic-button--recording" : ""}`}
+        className={`speech-textarea-mic-button absolute bottom-2 right-2 ${isListening ? "speech-textarea-mic-button--recording" : ""}`}
       >
         <Button
-          kind="ghost"
-          size={buttonSize || "md"}
+          variant="ghost"
+          size={buttonSize || "default"}
           onClick={toggleListening}
           disabled={disabled}
-          renderIcon={isListening ? MicrophoneFilled : Microphone}
-          hasIconOnly
-          iconDescription={isListening ? "Stop" : "Talk"}
-          tooltipPosition="left"
-        />
+          className="h-8 w-8 p-0"
+          title={isListening ? "Stop" : "Talk"}
+        >
+          {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+        </Button>
       </div>
     </div>
   );

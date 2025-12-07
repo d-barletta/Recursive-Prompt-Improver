@@ -1,23 +1,8 @@
 import React, { useRef, useEffect, memo, useMemo, useState, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import {
-  Link,
-  OrderedList,
-  UnorderedList,
-  ListItem,
-  Table,
-  TableHead,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableCell,
-  Heading,
-  Section,
-  CodeSnippet,
-  IconButton,
-} from "@carbon/react";
-import { Copy, Checkmark, View } from "@carbon/icons-react";
+import { Button } from "@/components/ui/button";
+import { Copy, Check, Eye } from "lucide-react";
 import { openHtmlPreview } from "@utils/internalBrowser";
 import { EditorView, basicSetup } from "codemirror";
 import { EditorState } from "@codemirror/state";
@@ -130,21 +115,20 @@ const CodeBlock = memo(({ language, children }) => {
   return (
     <div className="markdown-code-block-wrapper">
       <div ref={editorRef} className="markdown-code-block" />
-      <div className="markdown-code-actions">
+      <div className="markdown-code-actions flex gap-2">
         {isHtml && (
-          <IconButton kind="ghost" size="sm" align="left" label="Preview" onClick={handleView}>
-            <View />
-          </IconButton>
+          <Button variant="ghost" size="sm" onClick={handleView} title="Preview">
+            <Eye className="h-4 w-4" />
+          </Button>
         )}
-        <IconButton
-          kind="ghost"
+        <Button
+          variant="ghost"
           size="sm"
-          align="left"
-          label={copied ? "Copied!" : "Copy"}
           onClick={handleCopy}
+          title={copied ? "Copied!" : "Copy"}
         >
-          {copied ? <Checkmark /> : <Copy />}
-        </IconButton>
+          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+        </Button>
       </div>
     </div>
   );
@@ -182,79 +166,69 @@ const MarkdownContent = memo(({ content }) => {
         } else {
           // Inline code
           return (
-            <CodeSnippet
-              className="markdown-inline-code"
-              type="inline"
-              disabled={true}
-              hideCopyButton={true}
-            >
+            <code className="markdown-inline-code px-1 py-0.5 bg-muted rounded text-sm">
               {children}
-            </CodeSnippet>
+            </code>
           );
         }
       },
-      // Headings - using Carbon Heading component
-      h1: ({ children }) => (
-        <Section level={1}>
-          <Heading className="markdown-h1">{children}</Heading>
-        </Section>
-      ),
-      h2: ({ children }) => (
-        <Section level={2}>
-          <Heading className="markdown-h2">{children}</Heading>
-        </Section>
-      ),
-      h3: ({ children }) => (
-        <Section level={3}>
-          <Heading className="markdown-h3">{children}</Heading>
-        </Section>
-      ),
-      h4: ({ children }) => (
-        <Section level={4}>
-          <Heading className="markdown-h4">{children}</Heading>
-        </Section>
-      ),
-      h5: ({ children }) => (
-        <Section level={5}>
-          <Heading className="markdown-h5">{children}</Heading>
-        </Section>
-      ),
-      h6: ({ children }) => (
-        <Section level={6}>
-          <Heading className="markdown-h6">{children}</Heading>
-        </Section>
-      ),
+      // Headings
+      h1: ({ children }) => <h1 className="markdown-h1 text-3xl font-bold mt-6 mb-4">{children}</h1>,
+      h2: ({ children }) => <h2 className="markdown-h2 text-2xl font-semibold mt-5 mb-3">{children}</h2>,
+      h3: ({ children }) => <h3 className="markdown-h3 text-xl font-semibold mt-4 mb-2">{children}</h3>,
+      h4: ({ children }) => <h4 className="markdown-h4 text-lg font-medium mt-3 mb-2">{children}</h4>,
+      h5: ({ children }) => <h5 className="markdown-h5 text-base font-medium mt-2 mb-1">{children}</h5>,
+      h6: ({ children }) => <h6 className="markdown-h6 text-sm font-medium mt-2 mb-1">{children}</h6>,
       // Paragraphs
-      p: ({ children }) => <div className="markdown-paragraph">{children}</div>,
-      // Lists - using Carbon components
+      p: ({ children }) => <p className="markdown-paragraph mb-4">{children}</p>,
+      // Lists
       ul: ({ children }) => (
-        <UnorderedList className="markdown-list markdown-list--unordered">{children}</UnorderedList>
+        <ul className="markdown-list markdown-list--unordered list-disc list-inside mb-4 space-y-1">
+          {children}
+        </ul>
       ),
       ol: ({ children }) => (
-        <OrderedList className="markdown-list markdown-list--ordered">{children}</OrderedList>
-      ),
-      li: ({ children }) => <ListItem className="markdown-list-item">{children}</ListItem>,
-      // Links - using Carbon Link component
-      a: ({ href, children }) => (
-        <Link href={href} className="markdown-link" target="_blank" rel="noopener noreferrer">
+        <ol className="markdown-list markdown-list--ordered list-decimal list-inside mb-4 space-y-1">
           {children}
-        </Link>
+        </ol>
+      ),
+      li: ({ children }) => <li className="markdown-list-item ml-4">{children}</li>,
+      // Links
+      a: ({ href, children }) => (
+        <a
+          href={href}
+          className="markdown-link text-primary hover:underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {children}
+        </a>
       ),
       // Blockquotes
       blockquote: ({ children }) => (
-        <blockquote className="markdown-blockquote">{children}</blockquote>
-      ),
-      // Tables - using Carbon Table components
-      table: ({ children }) => (
-        <Table className="markdown-table" size="sm">
+        <blockquote className="markdown-blockquote border-l-4 border-muted pl-4 italic my-4">
           {children}
-        </Table>
+        </blockquote>
       ),
-      thead: ({ children }) => <TableHead>{children}</TableHead>,
-      tbody: ({ children }) => <TableBody>{children}</TableBody>,
-      tr: ({ children }) => <TableRow>{children}</TableRow>,
-      th: ({ children }) => <TableHeader className="markdown-table-header">{children}</TableHeader>,
-      td: ({ children }) => <TableCell className="markdown-table-cell">{children}</TableCell>,
+      // Tables
+      table: ({ children }) => (
+        <div className="overflow-x-auto my-4">
+          <table className="markdown-table min-w-full border-collapse border border-border">
+            {children}
+          </table>
+        </div>
+      ),
+      thead: ({ children }) => <thead className="bg-muted">{children}</thead>,
+      tbody: ({ children }) => <tbody>{children}</tbody>,
+      tr: ({ children }) => <tr className="border-b border-border">{children}</tr>,
+      th: ({ children }) => (
+        <th className="markdown-table-header border border-border px-4 py-2 text-left font-semibold">
+          {children}
+        </th>
+      ),
+      td: ({ children }) => (
+        <td className="markdown-table-cell border border-border px-4 py-2">{children}</td>
+      ),
       // Horizontal rule
       hr: () => <hr className="markdown-hr" />,
       // Strong/Bold
