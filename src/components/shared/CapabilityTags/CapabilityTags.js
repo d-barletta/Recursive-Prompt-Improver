@@ -1,6 +1,6 @@
 import React from "react";
-import { Tag } from "@carbon/react";
-import { Image, Json, DataStructured, TextLongParagraph, Tools } from "@carbon/icons-react";
+import { Badge } from "@/components/ui/badge";
+import { ImageIcon, Braces, Database, FileText, Wrench } from "lucide-react";
 
 /**
  * CapabilityTags - Displays capability tags for models/agents
@@ -33,41 +33,32 @@ const CapabilityTags = ({
   const iconSize = size === "sm" ? 12 : 16;
 
   return (
-    <span className={`capability-tags ${className}`}>
-      {/* {contextLength && (
-        <Tag size={size} type="gray" title="Context length">
-          {compactMode ? (
-            <TextLongParagraph size={iconSize} />
-          ) : (
-            `${contextLength.toLocaleString()} tokens`
-          )}
-        </Tag>
-      )} */}
+    <span className={`flex items-center gap-1 ${className}`}>
       {showTools && (
-        <Tag size={size} type="purple" title="Supports Tools">
+        <Badge variant="secondary" title="Supports Tools" className="bg-purple-500/20 text-purple-300">
           {compactMode ? (
-            <Tools size={iconSize} />
+            <Wrench className="h-3 w-3" />
           ) : toolsCount > 0 ? (
             `${toolsCount} ${toolsCount === 1 ? "Tool" : "Tools"}`
           ) : (
             "Tools"
           )}
-        </Tag>
+        </Badge>
       )}
       {supportsVision && (
-        <Tag size={size} type="red" title="Supports Vision">
-          {compactMode ? <Image size={iconSize} /> : "Vision"}
-        </Tag>
+        <Badge variant="secondary" title="Supports Vision" className="bg-red-500/20 text-red-300">
+          {compactMode ? <ImageIcon className="h-3 w-3" /> : "Vision"}
+        </Badge>
       )}
       {supportsJsonOutput && (
-        <Tag size={size} type="green" title="Supports JSON Output">
-          {compactMode ? <Json size={iconSize} /> : "JSON"}
-        </Tag>
+        <Badge variant="secondary" title="Supports JSON Output" className="bg-green-500/20 text-green-300">
+          {compactMode ? <Braces className="h-3 w-3" /> : "JSON"}
+        </Badge>
       )}
       {hasJsonSchema && (
-        <Tag size={size} type="magenta" title="Has JSON Schema">
-          {compactMode ? <DataStructured size={iconSize} /> : "Schema"}
-        </Tag>
+        <Badge variant="secondary" title="Has JSON Schema" className="bg-pink-500/20 text-pink-300">
+          {compactMode ? <Database className="h-3 w-3" /> : "Schema"}
+        </Badge>
       )}
     </span>
   );
