@@ -1,6 +1,9 @@
 import React from "react";
-import { Grid, Column, FormGroup, Button, TextArea, InlineLoading } from "@carbon/react";
-import { Reset, Maximize, Minimize } from "@carbon/react/icons";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { LoadingSpinner } from "@/components/ui/spinner";
+import { RotateCcw, Maximize, Minimize } from "lucide-react";
 import { isImproveDisabled } from "@utils/uiUtils";
 import { CORE } from "@core/MAIN";
 
@@ -20,11 +23,11 @@ const OutputSection = ({
   logger,
 }) => {
   return (
-    <Grid id="outputcontainer">
-      <Column lg={16} md={8} sm={4} className="status-column">
+    <div id="outputcontainer" className="space-y-4">
+      <div className="status-column">
         {isLoading ? (
-          <div className="loadingAndAbortContainer">
-            <InlineLoading
+          <div className="loadingAndAbortContainer flex items-center gap-4">
+            <LoadingSpinner
               description={
                 isImproveDisabled(improveMode)
                   ? "Testing..."
@@ -32,10 +35,9 @@ const OutputSection = ({
                     ? `Running iteration ${currentIteration} of ${iterations}`
                     : "Starting..."
               }
-              status="active"
             />
             <Button
-              kind="ghost"
+              variant="ghost"
               size="sm"
               onClick={async () => {
                 try {
@@ -51,52 +53,50 @@ const OutputSection = ({
             </Button>
           </div>
         ) : null}
-      </Column>
+      </div>
 
-      <Column lg={16} md={8} sm={4}>
-        <hr className="margin-03rem-0" />
-      </Column>
+      <hr className="my-4" />
 
-      <Column lg={16} md={8} sm={4}>
-        <FormGroup className="formGroup">
-          <div className="outputActionsContainer">
-            <Button
-              type="button"
-              kind="ghost"
-              size="sm"
-              onClick={() => {
-                clearLogs();
-                clearOutputFromLocalStorage();
-                showInfo("Logs cleared", "Output logs have been cleared");
-              }}
-              renderIcon={Reset}
-            >
-              Clear Logs
-            </Button>
-            <Button
-              type="button"
-              kind="ghost"
-              size="sm"
-              onClick={onToggleFullscreen}
-              renderIcon={isFullscreen ? Minimize : Maximize}
-            >
-              {isFullscreen ? "Minimize" : "Maximize"}
-            </Button>
-          </div>
+      <div className="formGroup space-y-4">
+        <div className="outputActionsContainer flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              clearLogs();
+              clearOutputFromLocalStorage();
+              showInfo("Logs cleared", "Output logs have been cleared");
+            }}
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Clear Logs
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onToggleFullscreen}
+          >
+            {isFullscreen ? <Minimize className="mr-2 h-4 w-4" /> : <Maximize className="mr-2 h-4 w-4" />}
+            {isFullscreen ? "Minimize" : "Maximize"}
+          </Button>
+        </div>
 
-          <TextArea
+        <div className="space-y-2">
+          <Label htmlFor="output">Logs</Label>
+          <Textarea
             ref={outputLog}
             id="output"
-            className={`outputTextarea ${isFullscreen ? "isFullsceen" : ""}`}
-            labelText="Logs"
+            className={`outputTextarea font-mono text-sm ${isFullscreen ? "isFullsceen" : ""}`}
             placeholder="Logging will appear here..."
             rows={8}
             value={logs}
             readOnly
           />
-        </FormGroup>
-      </Column>
-    </Grid>
+        </div>
+      </div>
+    </div>
   );
 };
 

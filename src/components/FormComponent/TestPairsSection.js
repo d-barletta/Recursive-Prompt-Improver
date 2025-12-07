@@ -1,6 +1,6 @@
 import React from "react";
-import { Column, Button } from "@carbon/react";
-import { Add } from "@carbon/react/icons";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import TestPairComponent from "./TestPairComponent";
 import { MAX_NUM_TESTS } from "@utils/constants";
 
@@ -60,17 +60,17 @@ const TestPairsSection = ({
           onRemoveModel={(idx) => onRemoveModel(idx)}
         />
       ))}
-      <Column lg={16} md={8} sm={4} className="addContainer">
+      <div className="addContainer w-full">
         <Button
-          kind="ghost"
+          variant="ghost"
           size="sm"
           onClick={onAddPair}
           disabled={isLoading || inOutPairs.length >= MAX_NUM_TESTS}
-          renderIcon={Add}
         >
+          <Plus className="mr-2 h-4 w-4" />
           Add Test
         </Button>
-      </Column>
+      </div>
     </>
   );
 };
