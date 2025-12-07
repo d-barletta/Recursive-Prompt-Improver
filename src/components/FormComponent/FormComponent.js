@@ -1,5 +1,5 @@
 import React from "react";
-import { Form, Grid, Column, TextAreaSkeleton } from "@carbon/react";
+import { Skeleton } from "@/components/ui/skeleton";
 import TestSettingsModal from "@components/modals/TestSettingsModal";
 import DiffModal from "@components/modals/DiffModal";
 import ChatModal from "@components/modals/ChatModal";
@@ -71,19 +71,19 @@ const FormComponent = () => {
 
   if (isLoadingForm)
     return (
-      <Form>
-        <Grid id="formcontainer">
-          <Column className="margin-top-1rem" lg={16} md={8} sm={4}>
-            <TextAreaSkeleton />
-          </Column>
-        </Grid>
-      </Form>
+      <form>
+        <div id="formcontainer" className="space-y-4">
+          <div className="margin-top-1rem">
+            <Skeleton className="h-32 w-full" />
+          </div>
+        </div>
+      </form>
     );
 
   return (
-    <Form onSubmit={handleSubmit}>
-      <Grid id="formcontainer" className={`${isFullscreen ? "isFullsceen" : ""}`}>
-        <Column lg={16} md={8} sm={4}>
+    <form onSubmit={handleSubmit}>
+      <div id="formcontainer" className={`space-y-6 ${isFullscreen ? "isFullsceen" : ""}`}>
+        <div className="w-full">
           <InstructionsEditor
             instructions={formData.instructions}
             instructionsRows={instructionsRows}
@@ -100,9 +100,9 @@ const FormComponent = () => {
             onRedo={handleRedoImprove}
             onCompare={() => setIsDiffModalOpen(true)}
           />
-        </Column>
+        </div>
 
-        <Column lg={16} md={16} sm={16} className="filtersContainer">
+        <div className="filtersContainer w-full">
           <TestPairsSection
             inOutPairs={formData.inOutPairs}
             isLoading={isLoading}
@@ -137,7 +137,7 @@ const FormComponent = () => {
             onAddPair={handleAddInOutPair}
             getLastSessionScoreByTestIndex={getLastSessionScoreByTestIndex}
           />
-        </Column>
+        </div>
 
         <SettingsSection
           tools={tools}
@@ -153,7 +153,7 @@ const FormComponent = () => {
           onImproveModeToggle={() => handleChange("improveMode", !formData.improveMode)}
         />
 
-        <Column lg={16} md={8} sm={4}></Column>
+        <div className="w-full"></div>
 
         <ActionsSection
           settings={settings}
@@ -168,7 +168,7 @@ const FormComponent = () => {
           onClearForm={handleClearForm}
           onNavigate={navigate}
         />
-      </Grid>
+      </div>
 
       <OutputSection
         isLoading={isLoading}
@@ -290,7 +290,7 @@ const FormComponent = () => {
           }));
         }}
       />
-    </Form>
+    </form>
   );
 };
 
