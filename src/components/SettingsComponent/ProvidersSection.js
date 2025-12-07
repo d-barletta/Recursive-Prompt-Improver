@@ -1,17 +1,14 @@
 import React from "react";
+import { Button } from "@/components/ui/button";
 import {
-  Button,
-  Column,
-  DataTable,
-  TableContainer,
   Table,
-  TableHead,
-  TableRow,
   TableHeader,
   TableBody,
+  TableHead,
+  TableRow,
   TableCell,
-} from "@carbon/react";
-import { Edit, TrashCan, Checkmark } from "@carbon/react/icons";
+} from "@/components/ui/table";
+import { Edit, Trash2, Check } from "lucide-react";
 
 const ProvidersSection = ({
   rows,
@@ -28,100 +25,85 @@ const ProvidersSection = ({
   };
 
   return (
-    <Column lg={16} md={8} sm={4}>
+    <div className="w-full">
       <h5 className="settings-section-title">API Providers</h5>
       {rows.length === 0 ? (
         <div className="settings-empty-state">
           No providers configured. Click Add Provider to get started.
         </div>
       ) : (
-        <DataTable rows={rows} headers={headers}>
-          {({
-            rows,
-            headers,
-            getHeaderProps,
-            getRowProps,
-            getTableProps,
-            getTableContainerProps,
-          }) => (
-            <TableContainer {...getTableContainerProps()} className="settings-table-container">
-              <Table {...getTableProps()}>
-                <TableHead>
-                  <TableRow>
-                    {headers
-                      .filter((header) => header.key !== "providerData")
-                      .map((header) => (
-                        <TableHeader {...getHeaderProps({ header })} key={header.key}>
-                          {header.header}
-                        </TableHeader>
-                      ))}
+        <div className="settings-table-container">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {headers
+                  .filter((header) => header.key !== "providerData")
+                  .map((header) => (
+                    <TableHead key={header.key}>{header.header}</TableHead>
+                  ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row) => {
+                const providerData = getProviderData(row);
+                return (
+                  <TableRow key={row.id}>
+                    {row.cells.map((cell) => {
+                      // Skip rendering providerData cell (it's just for data access)
+                      if (cell.info.header === "providerData") {
+                        return null;
+                      }
+                      if (cell.info.header === "isDefault") {
+                        return (
+                          <TableCell key={cell.id}>
+                            {cell.value ? (
+                              <span className="settings-default-checkmark">
+                                <Check className="h-5 w-5" />
+                              </span>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onDefaultProviderChange(providerData)}
+                              >
+                                Make default
+                              </Button>
+                            )}
+                          </TableCell>
+                        );
+                      }
+                      if (cell.info.header === "actions") {
+                        return (
+                          <TableCell key={cell.id}>
+                            <div className="settings-actions flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onEditProvider(providerData)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onDeleteProvider(providerData)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        );
+                      }
+                      return <TableCell key={cell.id}>{cell.value}</TableCell>;
+                    })}
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row) => {
-                    const providerData = getProviderData(row);
-                    return (
-                      <TableRow {...getRowProps({ row })} key={row.id}>
-                        {row.cells.map((cell) => {
-                          // Skip rendering providerData cell (it's just for data access)
-                          if (cell.info.header === "providerData") {
-                            return null;
-                          }
-                          if (cell.info.header === "isDefault") {
-                            return (
-                              <TableCell key={cell.id}>
-                                {cell.value ? (
-                                  <span className="settings-default-checkmark">
-                                    <Checkmark size={20} />
-                                  </span>
-                                ) : (
-                                  <Button
-                                    kind="ghost"
-                                    size="sm"
-                                    onClick={() => onDefaultProviderChange(providerData)}
-                                  >
-                                    Make default
-                                  </Button>
-                                )}
-                              </TableCell>
-                            );
-                          }
-                          if (cell.info.header === "actions") {
-                            return (
-                              <TableCell key={cell.id}>
-                                <div className="settings-actions">
-                                  <Button
-                                    kind="ghost"
-                                    size="sm"
-                                    renderIcon={Edit}
-                                    iconDescription="Edit"
-                                    hasIconOnly
-                                    onClick={() => onEditProvider(providerData)}
-                                  />
-                                  <Button
-                                    kind="ghost"
-                                    size="sm"
-                                    renderIcon={TrashCan}
-                                    iconDescription="Delete"
-                                    hasIconOnly
-                                    onClick={() => onDeleteProvider(providerData)}
-                                  />
-                                </div>
-                              </TableCell>
-                            );
-                          }
-                          return <TableCell key={cell.id}>{cell.value}</TableCell>;
-                        })}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </DataTable>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
-    </Column>
+    </div>
   );
 };
 
