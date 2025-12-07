@@ -9,28 +9,43 @@ import {
   useImportExport,
 } from "@hooks";
 import { saveContext } from "@utils/storageUtils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
-  DataTable,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Table,
-  TableHead,
-  TableRow,
-  TableHeader,
   TableBody,
   TableCell,
-  TableContainer,
-  Button,
-  Grid,
-  Column,
-  Pagination,
-  Search,
-  OverflowMenu,
-  OverflowMenuItem,
-  Modal,
-  TextInput,
-  DataTableSkeleton,
-  Tag,
-} from "@carbon/react";
-import { TrashCan, Add, Edit, Menu, Download, SearchLocateMirror, Chat } from "@carbon/icons-react";
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Pagination as UIPagination } from "@/components/ui/pagination";
+import {
+  Trash2,
+  Plus,
+  Edit,
+  MoreVertical,
+  Download,
+  Search as SearchIcon,
+  MessageSquare,
+} from "lucide-react";
 import ContextModal from "@components/modals/ContextModal";
 import EmptyState from "@components/shared/EmptyState";
 import { loadContexts, deleteContext, clearAllContexts } from "@utils/storageUtils";
@@ -179,176 +194,141 @@ const ContextsPage = () => {
     { key: "actions", header: "" },
   ];
 
-  const rows = paginatedContexts.map((context) => ({
-    id: context.id.toString(),
-    timestamp: formatDate(context.timestamp),
-    name: <span title={context.name}>{truncateText(context.name, 20)}</span>,
-    messageCount: (
-      <Tag type="cyan" size="sm">
-        {context.messages.length.toLocaleString()}
-      </Tag>
-    ),
-    tokens: (
-      <Tag type="gray" size="sm">
-        {context.totalTokens !== undefined ? context.totalTokens.toLocaleString() : "..."}
-      </Tag>
-    ),
-    actions: (
-      <div className="tableActionsContainer">
-        <div></div>
-        <div className="tableActionsDiv">
-          <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={Edit}
-            iconDescription="Edit"
-            tooltipPosition="top"
-            hasIconOnly
-            onClick={() =>
-              openEdit({
-                id: context.id,
-                name: context.name,
-                messages: [...context.messages],
-              })
-            }
-          >
-            Edit
-          </Button>
-          <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={Download}
-            iconDescription="Export"
-            tooltipPosition="top"
-            hasIconOnly
-            onClick={() => handleExportContext(context)}
-          >
-            Export
-          </Button>
-          <Button
-            kind="ghost"
-            size="sm"
-            renderIcon={TrashCan}
-            iconDescription="Delete"
-            tooltipPosition="top"
-            hasIconOnly
-            onClick={() => handleDeleteContext(context.id)}
-          />
-        </div>
-      </div>
-    ),
-  }));
+  const contextRows = paginatedContexts;
 
   return (
-    <div className="margin-bottom-2rem">
-      <div className="contextPage">
-        <h1 className="sectionTitle">Conversations</h1>
-        <div className="flex-center">
-          <Button
-            size="md"
-            renderIcon={Add}
-            kind="tertiary"
-            onClick={openCreate}
-            className="margin-right-1rem"
-          >
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Conversations</h1>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" />
             New
           </Button>
-          <Search
-            labelText="Search"
-            placeholder="Search by ID, name, or message content"
-            onChange={handleSearchChange}
-            value={searchTerm}
-            size="md"
-            className=""
-            disabled={!contexts || !contexts.length}
-          />
-          <OverflowMenu
-            className="margin-left-1rem"
-            size="md"
-            flipped
-            aria-label="Sessions menu"
-            renderIcon={Menu}
-          >
-            <OverflowMenuItem itemText="Import conversation" onClick={handleImportContext} />
-            <OverflowMenuItem
-              hasDivider
-              itemText="Delete all conversations"
-              onClick={handleClearAllContexts}
-              isDelete
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by ID, name, or message content"
+              onChange={(e) => handleSearchChange(e)}
+              value={searchTerm}
+              className="pl-9 w-80"
               disabled={!contexts || !contexts.length}
             />
-          </OverflowMenu>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleImportContext}>Import conversation</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleClearAllContexts}
+                disabled={!contexts || !contexts.length}
+                className="text-destructive"
+              >
+                Delete all conversations
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-      <Grid className="row-gap-0">
-        <Column lg={16} md={8} sm={4}>
-          {isLoading ? (
-            <DataTableSkeleton
-              showHeader={false}
-              showToolbar={false}
-              headers={headers}
-              rowCount={pageSize}
-              columnCount={headers.length}
-            />
-          ) : !contexts || contexts.length === 0 ? (
-            <EmptyState
-              icon={Chat}
-              title="No conversations yet"
-              description="Create a new conversation to get started with managing conversation history."
-            />
-          ) : filteredContexts.length === 0 ? (
-            <EmptyState
-              icon={SearchLocateMirror}
-              title="No matching conversations"
-              description="No conversations match your search criteria. Try a different search term."
-            />
-          ) : (
-            <DataTable rows={rows} headers={headers}>
-              {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
-                <TableContainer>
-                  <Table {...getTableProps()}>
-                    <TableHead>
-                      <TableRow>
-                        {headers.map((header, idx) => (
-                          <TableHeader {...getHeaderProps({ header })} key={`${idx}`}>
-                            {header.header}
-                          </TableHeader>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {rows.map((row, idx) => (
-                        <TableRow {...getRowProps({ row })} key={`${idx}`}>
-                          {row.cells.map((cell) => (
-                            <TableCell key={cell.id}>{cell.value}</TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </DataTable>
-          )}
-        </Column>
-        {isLoading || !contexts || contexts.length === 0 || filteredContexts.length === 0 ? (
-          <></>
-        ) : (
-          <Column lg={16} md={8} sm={4}>
-            <Pagination
-              backwardText="Previous page"
-              forwardText="Next page"
-              itemsPerPageText="Items per page:"
-              pageNumberText="Page Number"
-              pageSize={pageSize}
-              pageSizes={[5, 10, 15, 25, 50]}
-              totalItems={totalItems}
-              page={currentPage}
-              onChange={handlePageChange}
-            />
-          </Column>
-        )}
-      </Grid>
+
+      {isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: pageSize }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
+      ) : !contexts || contexts.length === 0 ? (
+        <EmptyState
+          icon={MessageSquare}
+          title="No conversations yet"
+          description="Create a new conversation to get started with managing conversation history."
+        />
+      ) : filteredContexts.length === 0 ? (
+        <EmptyState
+          icon={SearchIcon}
+          title="No matching conversations"
+          description="No conversations match your search criteria. Try a different search term."
+        />
+      ) : (
+        <>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Date Created</TableHead>
+                  <TableHead>Messages</TableHead>
+                  <TableHead>Tokens</TableHead>
+                  <TableHead className="w-32"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {contextRows.map((context) => (
+                  <TableRow key={context.id}>
+                    <TableCell>
+                      <span title={context.name}>{truncateText(context.name, 20)}</span>
+                    </TableCell>
+                    <TableCell>{formatDate(context.timestamp)}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{context.messages.length.toLocaleString()}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {context.totalTokens !== undefined ? context.totalTokens.toLocaleString() : "..."}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            openEdit({
+                              id: context.id,
+                              name: context.name,
+                              messages: [...context.messages],
+                            })
+                          }
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleExportContext(context)}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteContext(context.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <UIPagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(totalItems / pageSize)}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+            pageSizeOptions={[5, 10, 15, 25, 50]}
+          />
+        </>
+      )}
 
       {/* Context Modal */}
       <ContextModal
@@ -360,30 +340,41 @@ const ContextsPage = () => {
       />
 
       {/* Import Context Modal */}
-      <Modal
-        size="sm"
-        open={importModalOpen}
-        modalHeading="Import Conversation"
-        primaryButtonText="Import"
-        secondaryButtonText="Cancel"
-        onRequestSubmit={handleSaveImportedContext}
-        onRequestClose={() => {
-          setImportModalOpen(false);
-          setImportedContext(null);
-          setImportContextName("");
-        }}
-        preventCloseOnClickOutside
-      >
-        <p className="margin-bottom-1rem">Please provide a name for the imported conversation:</p>
-        <TextInput
-          id="import-context-name"
-          labelText="Conversation Name"
-          placeholder="Enter a name for this conversation"
-          value={importContextName}
-          onChange={(e) => setImportContextName(e.target.value)}
-          required
-        />
-      </Modal>
+      <Dialog open={importModalOpen} onOpenChange={setImportModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Import Conversation</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Please provide a name for the imported conversation:
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="import-context-name">Conversation Name</Label>
+              <Input
+                id="import-context-name"
+                placeholder="Enter a name for this conversation"
+                value={importContextName}
+                onChange={(e) => setImportContextName(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setImportModalOpen(false);
+                setImportedContext(null);
+                setImportContextName("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveImportedContext}>Import</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
