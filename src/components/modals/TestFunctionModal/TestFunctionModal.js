@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Modal, TextArea, InlineNotification, Loading, FormGroup } from "@carbon/react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { LoadingSpinner } from "@/components/ui/spinner";
 import { executeSandboxedFunction, validateFunctionCode } from "@utils/toolUtils";
 import JsonSchemaEditor from "@components/shared/JsonSchemaEditor";
 import { generateExampleParameters } from "./TestFunctionModal.utils";
@@ -68,79 +78,77 @@ const TestFunctionModal = ({ isOpen, onClose, functionCode, parametersSchema }) 
   };
 
   return (
-    <Modal
-      size="md"
-      className="test-function-modal"
-      open={isOpen}
-      modalHeading="Test Function"
-      primaryButtonText={isExecuting ? "Running..." : "Run Test"}
-      secondaryButtonText="Close"
-      onRequestSubmit={handleTestExecution}
-      onRequestClose={onClose}
-      primaryButtonDisabled={isExecuting}
-      preventCloseOnClickOutside
-    >
-      <div className="margin-bottom-1rem">
-        <p className="margin-bottom-1rem">
-          Test your function by providing parameter values below.
-        </p>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px] test-function-modal" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogHeader>
+          <DialogTitle>Test Function</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Test your function by providing parameter values below.
+          </p>
 
-        <FormGroup className="margin-0">
-          <label className="cds--label">Test Parameters (JSON object)</label>
-          <JsonSchemaEditor
-            value={testParameters}
-            onChange={(value) => setTestParameters(value)}
-            height="150px"
-            placeholder='{"param1": "value1", "param2": 123}'
-            showValidation={true}
-            helperText="Provide parameter values as a JSON object"
-          />
-        </FormGroup>
-      </div>
-
-      {isExecuting && (
-        <div className="margin-bottom-1rem">
-          <Loading description="Executing function..." withOverlay={false} small />
-        </div>
-      )}
-
-      {testResult && (
-        <div className="margin-top-1rem">
-          {testResult.success ? (
-            <InlineNotification
-              kind="success"
-              title="Test Passed"
-              subtitle="Function executed successfully"
-              lowContrast
-              hideCloseButton
-            />
-          ) : (
-            <InlineNotification
-              kind="error"
-              title="Test Failed"
-              subtitle={testResult.error || "Unknown error"}
-              lowContrast
-              hideCloseButton
-            />
-          )}
-
-          <div className="margin-top-1rem">
-            <label className="cds--label">Result:</label>
-            <TextArea
-              id="test-result"
-              labelText=""
-              value={
-                testResult.success
-                  ? JSON.stringify(testResult.result, null, 2)
-                  : testResult.error || "No result"
-              }
-              rows={6}
-              readOnly
+          <div className="space-y-2">
+            <Label>Test Parameters (JSON object)</Label>
+            <JsonSchemaEditor
+              value={testParameters}
+              onChange={(value) => setTestParameters(value)}
+              height="150px"
+              placeholder='{"param1": "value1", "param2": 123}'
+              showValidation={true}
+              helperText="Provide parameter values as a JSON object"
             />
           </div>
+
+          {isExecuting && (
+            <div className="py-4">
+              <LoadingSpinner description="Executing function..." />
+            </div>
+          )}
+
+          {testResult && (
+            <div className="space-y-4">
+              {testResult.success ? (
+                <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
+                  <h4 className="font-semibold text-green-900 dark:text-green-100">Test Passed</h4>
+                  <p className="text-sm text-green-700 dark:text-green-300">Function executed successfully</p>
+                </div>
+              ) : (
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                  <h4 className="font-semibold text-destructive">Test Failed</h4>
+                  <p className="text-sm text-destructive">{testResult.error || "Unknown error"}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label>Result:</Label>
+                <Textarea
+                  id="test-result"
+                  value={
+                    testResult.success
+                      ? JSON.stringify(testResult.result, null, 2)
+                      : testResult.error || "No result"
+                  }
+                  rows={6}
+                  readOnly
+                  className="font-mono text-sm"
+                />
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </Modal>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Close
+          </Button>
+          <Button onClick={handleTestExecution} disabled={isExecuting}>
+            {isExecuting ? "Running..." : "Run Test"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

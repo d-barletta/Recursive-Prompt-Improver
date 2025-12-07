@@ -1,14 +1,22 @@
 import React, { useState, useCallback } from "react";
 import {
-  ComposedModal,
-  ModalHeader,
-  ModalBody,
-  Button,
-  TextInput,
-  Dropdown,
-  InlineLoading,
-} from "@carbon/react";
-import { Search } from "@carbon/icons-react";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LoadingSpinner } from "@/components/ui/spinner";
+import { Search } from "lucide-react";
 import { RAG } from "@core/RAG";
 import { truncateText } from "@utils/uiUtils";
 
@@ -71,83 +79,103 @@ const KnowledgeSearchModal = ({ open, onClose, knowledgeBase }) => {
   };
 
   return (
-    <ComposedModal open={open} onClose={handleClose} size="lg">
-      <ModalHeader title={`Search: ${knowledgeBase?.name || "Knowledge Base"}`} />
-      <ModalBody className="knowledge-search-modal">
-        <div className="knowledge-search-controls">
-          <TextInput
-            id="search-query"
-            labelText="Search Query"
-            placeholder="Enter your search query..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isSearching}
-          />
-          <Dropdown
-            id="top-k-dropdown"
-            titleText="Results"
-            label="Select number of results"
-            items={TOP_K_OPTIONS}
-            selectedItem={topK}
-            onChange={({ selectedItem }) => setTopK(selectedItem)}
-            itemToString={(item) => item?.text || ""}
-            disabled={isSearching}
-          />
-          <Button
-            size="md"
-            kind="primary"
-            renderIcon={Search}
-            onClick={handleSearch}
-            disabled={!query.trim() || isSearching || !knowledgeBase?.vectors}
-            className="knowledge-search-button"
-          >
-            Search
-          </Button>
-        </div>
-
-        {isSearching && (
-          <div className="knowledge-search-loading">
-            <InlineLoading description="Searching..." />
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[700px] knowledge-search-modal">
+        <DialogHeader>
+          <DialogTitle>Search: {knowledgeBase?.name || "Knowledge Base"}</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          <div className="knowledge-search-controls space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="search-query">Search Query</Label>
+              <Input
+                id="search-query"
+                placeholder="Enter your search query..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isSearching}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="top-k-select">Results</Label>
+              <Select
+                value={topK.id.toString()}
+                onValueChange={(value) => {
+                  const selected = TOP_K_OPTIONS.find(opt => opt.id.toString() === value);
+                  if (selected) setTopK(selected);
+                }}
+                disabled={isSearching}
+              >
+                <SelectTrigger id="top-k-select">
+                  <SelectValue placeholder="Select number of results" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TOP_K_OPTIONS.map((option) => (
+                    <SelectItem key={option.id} value={option.id.toString()}>
+                      {option.text}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Button
+              size="default"
+              onClick={handleSearch}
+              disabled={!query.trim() || isSearching || !knowledgeBase?.vectors}
+              className="w-full knowledge-search-button"
+            >
+              <Search className="mr-2 h-4 w-4" />
+              Search
+            </Button>
           </div>
-        )}
 
-        {!isSearching && hasSearched && (
-          <div className="knowledge-search-results">
-            <h4 className="knowledge-search-results-title">
-              {results.length > 0
-                ? `Found ${results.length} result${results.length !== 1 ? "s" : ""}`
-                : "No results found"}
-            </h4>
+          {isSearching && (
+            <div className="knowledge-search-loading py-8">
+              <LoadingSpinner description="Searching..." />
+            </div>
+          )}
 
-            {results.length > 0 && (
-              <div className="knowledge-search-results-list">
-                {results.map((result, index) => (
-                  <div key={`${result.fileId}-${result.index}`} className="knowledge-search-result">
-                    <div className="knowledge-search-result-header">
-                      <span className="knowledge-search-result-rank">#{index + 1}</span>
-                      <span className="knowledge-search-result-file">
-                        {truncateText(result.fileName, 40)}
-                      </span>
-                      <span className="knowledge-search-result-score">
-                        {(result.similarity * 100).toFixed(1)}% match
-                      </span>
+          {!isSearching && hasSearched && (
+            <div className="knowledge-search-results space-y-4">
+              <h4 className="knowledge-search-results-title font-semibold">
+                {results.length > 0
+                  ? `Found ${results.length} result${results.length !== 1 ? "s" : ""}`
+                  : "No results found"}
+              </h4>
+
+              {results.length > 0 && (
+                <div className="knowledge-search-results-list space-y-3 max-h-[400px] overflow-y-auto">
+                  {results.map((result, index) => (
+                    <div key={`${result.fileId}-${result.index}`} className="knowledge-search-result p-3 border rounded-md">
+                      <div className="knowledge-search-result-header flex items-center gap-2 mb-2">
+                        <span className="knowledge-search-result-rank text-sm font-medium">#{index + 1}</span>
+                        <span className="knowledge-search-result-file text-sm text-muted-foreground">
+                          {truncateText(result.fileName, 40)}
+                        </span>
+                        <span className="knowledge-search-result-score ml-auto text-sm font-medium">
+                          {(result.similarity * 100).toFixed(1)}% match
+                        </span>
+                      </div>
+                      <div className="knowledge-search-result-text text-sm">{result.text}</div>
                     </div>
-                    <div className="knowledge-search-result-text">{result.text}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-        {!hasSearched && !isSearching && (
-          <p className="knowledge-search-hint">
-            Enter a query and click Search to find relevant content.
-          </p>
-        )}
-      </ModalBody>
-    </ComposedModal>
+          {!hasSearched && !isSearching && (
+            <p className="knowledge-search-hint text-sm text-muted-foreground text-center py-8">
+              Enter a query and click Search to find relevant content.
+            </p>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
