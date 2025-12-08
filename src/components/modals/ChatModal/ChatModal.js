@@ -1,14 +1,29 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { Modal, Button, InlineLoading, Dropdown, MultiSelect } from "@carbon/react";
 import {
-  TrashCan,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Trash2,
   FolderOpen,
   Play,
   Save,
   Book,
-  NotebookReference,
+  BookOpen,
   ArrowDown,
-} from "@carbon/icons-react";
+} from "lucide-react";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import UploadModal from "@components/modals/UploadModal";
@@ -819,11 +834,11 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
   }, [onClose]);
 
   return (
-    <Modal
+    <Dialog
       open={isOpen}
       onRequestClose={handleClose}
       passiveModal
-      modalHeading={modalTitle || "Chat Assistant"}
+      >
       size="lg"
       className="chat-modal"
       selectorPrimaryFocus="#chat-input-textarea"
@@ -845,9 +860,9 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
               }
             />
             {showContextDropdown ? (
-              <Dropdown
+              <Select
                 id="context-dropdown"
-                titleText=""
+                label=""
                 label="Load conversation"
                 items={availableContexts}
                 itemToString={(item) => item?.name || ""}
@@ -888,9 +903,9 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
           </div>
           <div className="chat-modal__navbar-actions_right">
             {showKnowledgeBaseSelect ? (
-              <MultiSelect
+              <Select multiple
                 id="knowledge-base-select"
-                titleText=""
+                label=""
                 label="Knowledge"
                 hideLabel
                 items={availableKnowledgeBases}
@@ -966,13 +981,12 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
                 <ChatMessage role={partialMessRole} content={partialMess} />
               ) : null}
               <div className="chat-modal__loading">
-                <InlineLoading
-                  style={{ width: "fit-content" }}
-                  description="Thinking..."
-                  status="active"
-                />
+                <div className="flex items-center gap-2" style={{ width: "fit-content" }}>
+                  <Spinner className="h-4 w-4" />
+                  <span className="text-sm text-muted-foreground">Thinking...</span>
+                </div>
                 <Button
-                  kind="ghost"
+                  variant="ghost"
                   size="sm"
                   onClick={handleStopGeneration}
                   className="chat-modal__stop-button"
@@ -1059,7 +1073,7 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
           accept: ".jpg,.jpeg,.png,.gif,.webp,.bmp",
         }}
       />
-    </Modal>
+    </Dialog>
   );
 };
 

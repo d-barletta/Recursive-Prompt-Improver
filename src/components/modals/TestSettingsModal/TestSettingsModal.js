@@ -1,18 +1,29 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  Modal,
-  Dropdown,
-  FormGroup,
-  MultiSelect,
-  Grid,
-  Column,
-  Toggle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Accordion,
+  AccordionContent,
   AccordionItem,
-  TextInput,
-  IconButton,
-} from "@carbon/react";
-import { Image as ImageIcon, Close } from "@carbon/icons-react";
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Image as ImageIcon, X } from "lucide-react";
 import { CHECK_TYPE_ITEMS, CHECK_TYPES, DEFAULT_CHECK_TYPES } from "@utils/constants";
 import { useSettings } from "@context/SettingsContext";
 import { useHasFormChanges } from "@hooks";
@@ -499,10 +510,10 @@ const TestSettingsModal = ({
   };
 
   return (
-    <Modal
+    <Dialog
       open={open}
-      onRequestClose={handleClose}
-      modalHeading={`Test ${testIndex + 1} settings`}
+      onOpenChange={handleClose}
+      > settings`}
       primaryButtonText="Save"
       secondaryButtonText="Cancel"
       primaryButtonDisabled={!hasChanges || (isToolsCallEnabled && tempToolsCalled.length === 0)}
@@ -514,10 +525,10 @@ const TestSettingsModal = ({
       {open && (
         <>
           <div className="min-height-23rem testSettingsModalBody">
-            <Grid fullWidth className="padding-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Row 1: Model and Embedding Model */}
               <Column lg={8} md={4} sm={4}>
-                <FormGroup className="formGroup">
+                <div className="space-y-2">
                   <AdvancedSelect
                     id={`modelDropdown-test-${testIndex}`}
                     titleText="Test Model"
@@ -534,10 +545,10 @@ const TestSettingsModal = ({
                     disabled={availableModels.length === 0}
                     showProviderIcon
                   />
-                </FormGroup>
-              </Column>
+                </div>
+              </div>
               <Column lg={8} md={4} sm={4}>
-                <FormGroup className="formGroup">
+                <div className="space-y-2">
                   <AdvancedSelect
                     id={`embeddingModelDropdown-test-${testIndex}`}
                     titleText="Embeddings Model"
@@ -558,12 +569,12 @@ const TestSettingsModal = ({
                     disabled={isToolsCallEnabled || availableEmbeddings.length === 0}
                     showProviderIcon
                   />
-                </FormGroup>
-              </Column>
+                </div>
+              </div>
 
               {/* Row 2: Context and Check Types */}
               <Column lg={8} md={4} sm={4} className="margin-top-1rem">
-                <FormGroup className="formGroup">
+                <div className="space-y-2">
                   <Dropdown
                     className="context-dropdown"
                     id={`contextDropdown-test-${testIndex}`}
@@ -578,13 +589,13 @@ const TestSettingsModal = ({
                     }}
                     helperText={"Add some messages in the conversation"}
                   />
-                </FormGroup>
-              </Column>
+                </div>
+              </div>
 
               {/* Knowledge Bases MultiSelect */}
 
               <Column lg={8} md={4} sm={4} className="margin-top-1rem">
-                <FormGroup className="formGroup">
+                <div className="space-y-2">
                   <MultiSelect
                     key={`knowledgeBasesMultiSelect-${testIndex}-${open}`}
                     id={`knowledgeBasesMultiSelect-test-${testIndex}`}
@@ -600,12 +611,12 @@ const TestSettingsModal = ({
                     }}
                     helperText={"Include relevant context from knowledge bases"}
                   />
-                </FormGroup>
-              </Column>
+                </div>
+              </div>
 
               {/* Test Input Images */}
               <Column lg={8} md={4} sm={4} className="margin-top-1rem">
-                <FormGroup className="formGroup">
+                <div className="space-y-2">
                   <div className="test-settings-images-section">
                     <div className="test-settings-images-header">
                       <label className="cds--label">
@@ -614,7 +625,7 @@ const TestSettingsModal = ({
                       </label>
                     </div>
                     <div className="test-settings-images-container">
-                      <IconButton
+                      <Button variant="ghost" size="icon"
                         kind="ghost"
                         size="sm"
                         label="Add images"
@@ -657,11 +668,11 @@ const TestSettingsModal = ({
                         : "Current model doesn't support vision, images will be ignored"}
                     </div>
                   </div>
-                </FormGroup>
-              </Column>
+                </div>
+              </div>
 
               <Column lg={8} md={4} sm={4} className="margin-top-1rem">
-                <FormGroup className="formGroup">
+                <div className="space-y-2">
                   <MultiSelect
                     key={`checkTypesMultiSelect-${testIndex}-${open}`}
                     id={`checkTypesMultiSelect-test-${testIndex}`}
@@ -720,13 +731,13 @@ const TestSettingsModal = ({
                       setTempCheckTypes(uniqueCheckTypes);
                     }}
                   />
-                </FormGroup>
-              </Column>
+                </div>
+              </div>
 
               {/* Row 3: Tools Called MultiSelect (only show when Tools Call check is enabled) */}
               {isToolsCallEnabled && hasAvailableTools && (
                 <Column lg={16} md={8} sm={4} className="margin-top-1rem">
-                  <FormGroup className="formGroup">
+                  <div className="space-y-2">
                     <MultiSelect
                       key={`toolsCalledMultiSelect-${testIndex}-${open}`}
                       id={`toolsCalledMultiSelect-test-${testIndex}`}
@@ -743,14 +754,14 @@ const TestSettingsModal = ({
                       invalid={isToolsCallEnabled && tempToolsCalled.length === 0}
                       invalidText="At least one tool must be selected when 'Tools call' check is enabled"
                     />
-                  </FormGroup>
-                </Column>
+                  </div>
+                </div>
               )}
 
               {/* Row 3b: Expected Parameters for each selected tool (only show when tools are selected) */}
               {isToolsCallEnabled && tempToolsCalled.length > 0 && (
                 <Column lg={16} md={8} sm={4} className="margin-top-1rem">
-                  <FormGroup className="formGroup">
+                  <div className="space-y-2">
                     <label className="cds--label margin-bottom-half">
                       Expected Tool Parameters (optional)
                     </label>
@@ -800,9 +811,9 @@ const TestSettingsModal = ({
                                       const currentValue = tool.expectedParams?.[paramName] || "";
                                       return (
                                         <div key={paramName} className="margin-bottom-1rem">
-                                          <TextInput
+                                          <Input
                                             id={`tool-${tool.id}-param-${paramName}`}
-                                            labelText={`${paramName} (${paramType})`}
+                                            label={`${paramName} (${paramType})`}
                                             placeholder={
                                               paramDescription ||
                                               `Enter expected value for ${paramName}`
@@ -836,38 +847,38 @@ const TestSettingsModal = ({
                         );
                       })}
                     </Accordion>
-                  </FormGroup>
-                </Column>
+                  </div>
+                </div>
               )}
 
               {/* Row 4: Use JSON Schema and Strict toggles (only show when JSON check is enabled) */}
               {isJsonCheckEnabled && (
                 <>
                   <Column lg={8} md={4} sm={4} className="margin-top-1rem">
-                    <FormGroup className="formGroup">
-                      <Toggle
+                    <div className="space-y-2">
+                      <Switch
                         id={`useJsonSchemaToggle-test-${testIndex}`}
-                        labelText="Use JSON schema"
+                        label="Use JSON schema"
                         labelA="Off"
                         labelB="On"
-                        toggled={tempUseJsonSchema}
-                        onToggle={(checked) => setTempUseJsonSchema(checked)}
+                        checked={tempUseJsonSchema}
+                        onCheckedChange={(checked) => setTempUseJsonSchema(checked)}
                       />
-                    </FormGroup>
-                  </Column>
+                    </div>
+                  </div>
                   {tempUseJsonSchema && (
                     <Column lg={8} md={4} sm={4} className="margin-top-1rem">
-                      <FormGroup className="formGroup">
-                        <Toggle
+                      <div className="space-y-2">
+                        <Switch
                           id={`jsonSchemaStrictToggle-test-${testIndex}`}
-                          labelText="Strict mode"
+                          label="Strict mode"
                           labelA="Additional fields allowed in JSON"
                           labelB="JSON strictly follows schema"
-                          toggled={tempJsonSchemaStrict}
-                          onToggle={(checked) => setTempJsonSchemaStrict(checked)}
+                          checked={tempJsonSchemaStrict}
+                          onCheckedChange={(checked) => setTempJsonSchemaStrict(checked)}
                         />
-                      </FormGroup>
-                    </Column>
+                      </div>
+                    </div>
                   )}
                 </>
               )}
@@ -875,7 +886,7 @@ const TestSettingsModal = ({
               {/* Row 5: JSON Schema textarea (only show when Use JSON Schema is enabled) */}
               {isJsonCheckEnabled && tempUseJsonSchema && (
                 <Column lg={16} md={8} sm={4} className="margin-top-1rem">
-                  <FormGroup className="formGroup">
+                  <div className="space-y-2">
                     <label className="cds--label">JSON Schema</label>
                     <JsonSchemaEditor
                       value={tempJsonSchema}
@@ -890,10 +901,10 @@ const TestSettingsModal = ({
                           : "Invalid JSON schema format"
                       }
                     />
-                  </FormGroup>
-                </Column>
+                  </div>
+                </div>
               )}
-            </Grid>
+            </div>
           </div>
 
           {/* Upload Modal for images */}
@@ -911,7 +922,7 @@ const TestSettingsModal = ({
           />
         </>
       )}
-    </Modal>
+    </Dialog>
   );
 };
 
