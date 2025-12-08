@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Form, TextInput, TextArea, FormGroup, Modal, Button, InlineLoading } from "@carbon/react";
-import { Play, MagicWandFilled } from "@carbon/icons-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
+import { Play, Wand2 } from "lucide-react";
 import Ajv from "ajv";
 import { saveTool } from "@utils/storageUtils";
 import { useToast } from "@context/ToastContext";
@@ -327,199 +338,191 @@ const ToolModal = ({ isOpen, onClose, editMode = false, initialTool = null, onSa
 
   return (
     <>
-      <Modal
-        size="lg"
-        open={isOpen}
-        modalHeading={editMode ? "Edit Tool" : "Create Tool"}
-        primaryButtonText={isLoading ? "Session is running..." : editMode ? "Update" : "Create"}
-        secondaryButtonText="Cancel"
-        onRequestSubmit={handleSubmit}
-        onRequestClose={onClose}
-        primaryButtonDisabled={isLoading || !isSubmitEnabled || isMagicFilling}
-        selectorPrimaryFocus="#tool-name"
-        selectorsFloatingMenus={[".test-function-modal"]}
-        preventCloseOnClickOutside
-      >
-        <Form>
-          <div className="flex-gap-1rem-margin-bottom">
-            <div style={{ flex: "1 1 auto" }}>
-              <TextInput
-                id="tool-name"
-                labelText="Name (*)"
-                placeholder="Enter tool name (e.g., myTool, get_data, calculate_sum)"
-                value={currentTool.name}
-                name="name"
-                onChange={handleInputChange}
-                required
-                disabled={isMagicFilling}
-                invalid={
-                  currentTool.name.trim() !== "" && validateToolName(currentTool.name) !== null
-                }
-                invalidText={
-                  currentTool.name.trim() !== "" ? validateToolName(currentTool.name) : ""
-                }
-                helperText="1-64 characters, must start with a letter, can contain letters, numbers, hyphens, and underscores"
-              />
-            </div>
-            <div style={{ flex: "1 1 auto", maxWidth: "9rem" }}>
-              <TextInput
-                id="tool-type"
-                labelText="Type"
-                value={currentTool.type}
-                name="type"
-                disabled
-              />
-            </div>
-          </div>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editMode ? "Edit Tool" : "Create Tool"}</DialogTitle>
+          </DialogHeader>
 
-          <FormGroup className="margin-bottom-1rem">
-            <div
-              className="flex-space-between align-items-flex-end"
-              style={{
-                marginBottom: "-1rem",
-                zIndex: "1",
-                position: "relative",
-                marginTop: "-1rem",
-              }}
-            >
-              <label className="cds--label"></label>
-              {isMagicFilling ? (
-                <InlineLoading
-                  style={{ maxWidth: "fit-content" }}
-                  description="Generating..."
-                  status="active"
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <Label htmlFor="tool-name">Name (*)</Label>
+                <Input
+                  id="tool-name"
+                  placeholder="Enter tool name (e.g., myTool, get_data, calculate_sum)"
+                  value={currentTool.name}
+                  name="name"
+                  onChange={handleInputChange}
+                  required
+                  disabled={isMagicFilling}
+                  className={
+                    currentTool.name.trim() !== "" && validateToolName(currentTool.name) !== null
+                      ? "border-destructive"
+                      : ""
+                  }
                 />
-              ) : (
+                {currentTool.name.trim() !== "" && validateToolName(currentTool.name) !== null && (
+                  <p className="text-xs text-destructive mt-1">{validateToolName(currentTool.name)}</p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  1-64 characters, must start with a letter, can contain letters, numbers, hyphens, and underscores
+                </p>
+              </div>
+              <div className="w-36">
+                <Label htmlFor="tool-type">Type</Label>
+                <Input
+                  id="tool-type"
+                  value={currentTool.type}
+                  name="type"
+                  disabled
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-end">
+                <Label htmlFor="tool-description">Description</Label>
+                {isMagicFilling ? (
+                  <div className="flex items-center gap-2">
+                    <Spinner className="h-4 w-4" />
+                    <span className="text-sm text-muted-foreground">Generating...</span>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleMagicFill}
+                    disabled={
+                      !currentTool.name.trim() ||
+                      validateToolName(currentTool.name) !== null ||
+                      !currentTool.description.trim() ||
+                      !settings.providers?.length
+                    }
+                  >
+                    <Wand2 className="h-4 w-4 mr-2" />
+                    Auto generate
+                  </Button>
+                )}
+              </div>
+              <Textarea
+                id="tool-description"
+                placeholder="Enter a description of what this tool does, this could be used to autogenerate schema and function template"
+                value={currentTool.description}
+                name="description"
+                onChange={handleInputChange}
+                rows={description.rows}
+                disabled={isMagicFilling || !currentTool.name.trim()}
+                onFocus={description.onFocus}
+                onBlur={() => {
+                  description.onBlur();
+                  setShouldCheckAutoTrigger(true); // Trigger auto-fill check after description blur
+                }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Parameters (JSON Schema object, optional)</Label>
+              <JsonSchemaEditor
+                value={currentTool?.parameters || ""}
+                onChange={handleParametersChange}
+                height="120px"
+                disabled={isMagicFilling || !currentTool.name.trim()}
+                placeholder='Enter JSON schema here... e.g. {"type": "object", "properties": {...}}'
+                showValidation={true}
+                helperText="Enter a valid JSON Schema object defining the function parameters. Leave as {} for no parameters."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-end">
+                <Label>Function</Label>
                 <Button
-                  kind="ghost"
+                  type="button"
+                  variant="ghost"
                   size="sm"
-                  renderIcon={MagicWandFilled}
-                  onClick={handleMagicFill}
+                  onClick={() => setIsTestModalOpen(true)}
                   disabled={
-                    !currentTool.name.trim() ||
-                    validateToolName(currentTool.name) !== null ||
-                    !currentTool.description.trim() ||
-                    !settings.providers?.length
+                    !fullFunctionCode ||
+                    !fullFunctionCode.trim() ||
+                    isMagicFilling ||
+                    (!functionBodyValidation.valid && currentTool.functionBody.trim())
                   }
                 >
-                  Auto generate
+                  <Play className="h-4 w-4 mr-2" />
+                  Test Function
                 </Button>
-              )}
-            </div>
-            <TextArea
-              id="tool-description"
-              labelText="Description"
-              placeholder="Enter a description of what this tool does, this could be used to autogenerate schema and function template"
-              value={currentTool.description}
-              name="description"
-              onChange={handleInputChange}
-              rows={description.rows}
-              disabled={isMagicFilling || !currentTool.name.trim()}
-              onFocus={description.onFocus}
-              onBlur={() => {
-                description.onBlur();
-                setShouldCheckAutoTrigger(true); // Trigger auto-fill check after description blur
-              }}
-            />
-          </FormGroup>
+              </div>
 
-          <FormGroup className="margin-0">
-            <label className="cds--label">Parameters (JSON Schema object, optional)</label>
-            <JsonSchemaEditor
-              value={currentTool?.parameters || ""}
-              onChange={handleParametersChange}
-              height="120px"
-              disabled={isMagicFilling || !currentTool.name.trim()}
-              placeholder='Enter JSON schema here... e.g. {"type": "object", "properties": {...}}'
-              showValidation={true}
-              helperText="Enter a valid JSON Schema object defining the function parameters. Leave as {} for no parameters."
-            />
-          </FormGroup>
-
-          <FormGroup className="margin-bottom-1rem">
-            <div
-              className="flex-space-between align-items-flex-end"
-              style={{ marginBottom: "-1.5rem" }}
-            >
-              <label className="cds--label"></label>
-              <Button
-                kind="ghost"
-                size="sm"
-                renderIcon={Play}
-                onClick={() => setIsTestModalOpen(true)}
-                disabled={
-                  !fullFunctionCode ||
-                  !fullFunctionCode.trim() ||
-                  isMagicFilling ||
-                  (!functionBodyValidation.valid && currentTool.functionBody.trim())
+              {/* Function (Read-only Signature) */}
+              <div>
+                <Label className="text-xs text-muted-foreground">
+                  Function (Signature auto-generated)
+                </Label>
+                <CodeEditor
+                  value={functionSignature}
+                  onChange={() => {}} // Read-only, no-op
+                  readOnly={true}
+                  disabled={true}
+                  showLineNumbers={false}
+                  height="30px"
+                />
+              </div>
+              {/* Function Body (Editable) */}
+              <div
+                className={
+                  !functionBodyValidation.valid && currentTool.functionBody.trim()
+                    ? "border-2 border-destructive rounded"
+                    : ""
                 }
               >
-                Test Function
-              </Button>
-            </div>
+                <CodeEditor
+                  className={"borderBottom-0 borderTop-0"}
+                  value={currentTool.functionBody}
+                  onChange={handleFunctionBodyChange}
+                  disabled={isMagicFilling || !currentTool.name.trim()}
+                  envVariables={settings.environmentVariables}
+                />
+              </div>
+              {/* Closing brace (Read-only) */}
+              <div>
+                <CodeEditor
+                  value="}"
+                  onChange={() => {}} // Read-only, no-op
+                  readOnly={true}
+                  disabled={true}
+                  showLineNumbers={false}
+                  height="30px"
+                />
+              </div>
 
-            {/* Function (Read-only Signature) */}
-            <div className="margin-top-half">
-              <label
-                className="cds--label"
-                style={{ fontSize: "0.75rem", marginBottom: "0.25rem" }}
-              >
-                Function (Signature auto-generated)
-              </label>
-              <CodeEditor
-                value={functionSignature}
-                onChange={() => {}} // Read-only, no-op
-                readOnly={true}
-                disabled={true}
-                showLineNumbers={false}
-                height="30px"
-              />
+              <div className="text-xs text-muted-foreground mt-2">
+                {!functionBodyValidation.valid && currentTool.functionBody.trim() ? (
+                  <div className="text-destructive">{functionBodyValidation.error}</div>
+                ) : (
+                  <>
+                    Edit the function body above. The signature is auto generated from the schema. Use
+                    env.VARIABLE_NAME to access environment variables.
+                  </>
+                )}
+              </div>
             </div>
-            {/* Function Body (Editable) */}
-            <div
-              className={
-                !functionBodyValidation.valid && currentTool.functionBody.trim()
-                  ? "inErrorOutline"
-                  : ""
-              }
-            >
-              <CodeEditor
-                className={"borderBottom-0 borderTop-0"}
-                value={currentTool.functionBody}
-                onChange={handleFunctionBodyChange}
-                disabled={isMagicFilling || !currentTool.name.trim()}
-                envVariables={settings.environmentVariables}
-              />
-            </div>
-            {/* Closing brace (Read-only) */}
-            <div>
-              <CodeEditor
-                value="}"
-                onChange={() => {}} // Read-only, no-op
-                readOnly={true}
-                disabled={true}
-                showLineNumbers={false}
-                height="30px"
-              />
-            </div>
+          </form>
 
-            <div
-              className="cds--form__helper-text margin-top-half"
-              style={{ marginBottom: "3rem" }}
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose} disabled={isLoading || isMagicFilling}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isLoading || !isSubmitEnabled || isMagicFilling}
             >
-              {/* Show validation error if function body is invalid */}
-              {!functionBodyValidation.valid && currentTool.functionBody.trim() ? (
-                <div className="inErrorText">{functionBodyValidation.error}</div>
-              ) : (
-                <>
-                  Edit the function body above. The signature is auto generated from the schema. Use
-                  env.VARIABLE_NAME to access environment variables.
-                </>
-              )}
-            </div>
-          </FormGroup>
-        </Form>
-      </Modal>
+              {isLoading ? "Session is running..." : editMode ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Test Function Modal - Outside parent modal to avoid nesting issues */}
       <TestFunctionModal

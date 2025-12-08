@@ -2,14 +2,21 @@ import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { useToast } from "@context/ToastContext";
 import { useLoading } from "@context/LoadingContext";
 import {
-  Modal,
-  CodeSnippet,
-  Grid,
-  Column,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
   Accordion,
+  AccordionContent,
   AccordionItem,
-  InlineLoading,
-} from "@carbon/react";
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Spinner } from "@/components/ui/spinner";
+import { Copy } from "lucide-react";
 import ReactECharts from "echarts-for-react";
 import ReactDiffViewer from "@alexbruf/react-diff-viewer";
 import "@alexbruf/react-diff-viewer/index.css";
@@ -106,41 +113,35 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
   }, []);
 
   return (
-    <Modal
-      className={"session-details-modal"}
-      open={isOpen}
-      modalHeading={`${session?.improveMode === false ? "Test Only" : "Improve & Test"} Session - ${formatDateFull(session?.timestamp)}`}
-      primaryButtonText="Close"
-      secondaryButtonText={isLoading ? "A session is running" : "Load into Form"}
-      onRequestClose={onClose}
-      onRequestSubmit={onClose}
-      onSecondarySubmit={isLoading ? () => {} : onLoadIntoForm}
-      size="lg"
-      hasScrollingContent
-      preventCloseOnClickOutside
-    >
-      {!!session && (
-        <div className="margin-top-1rem-bottom-1rem">
-          <Grid fullWidth className="padding-0">
-            <Column lg={6} md={3} sm={3} className="margin-bottom-2rem">
-              <h4 className="flex-align-center gap-05">
-                <ProviderIcon providerId={session.coreModel.providerId} size={20} />
-                Core Model - {session.coreModel.providerName || "Default"}
-              </h4>
-              <CodeSnippet
-                type="single"
-                autoAlign={true}
-                copyButtonDescription="Copy"
-                feedback="Copied"
-                className={"codeSnippet"}
-                wrapText={true}
-                onClick={() =>
-                  handleCopy(session?.coreModel?.text || session?.coreModel?.id, "Core Model")
-                }
-              >
-                {session?.coreModel?.text || session?.coreModel?.id || "Unknown model"}
-              </CodeSnippet>
-            </Column>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {session?.improveMode === false ? "Test Only" : "Improve & Test"} Session -{" "}
+            {formatDateFull(session?.timestamp)}
+          </DialogTitle>
+        </DialogHeader>
+
+        {!!session && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="flex items-center gap-2 text-sm font-semibold mb-2">
+                  <ProviderIcon providerId={session.coreModel.providerId} size={20} />
+                  Core Model - {session.coreModel.providerName || "Default"}
+                </h4>
+                <div
+                  className="relative p-3 bg-muted rounded border font-mono text-sm cursor-pointer hover:bg-muted/80"
+                  onClick={() =>
+                    handleCopy(session?.coreModel?.text || session?.coreModel?.id, "Core Model")
+                  }
+                >
+                  <Copy className="absolute top-2 right-2 h-4 w-4 text-muted-foreground" />
+                  <div className="pr-8 break-all">
+                    {session?.coreModel?.text || session?.coreModel?.id || "Unknown model"}
+                  </div>
+                </div>
+              </div>
 
             {session?.selectedTools && session.selectedTools.length > 0 && (
               <Column lg={16} md={8} sm={4} className="margin-bottom-2rem">

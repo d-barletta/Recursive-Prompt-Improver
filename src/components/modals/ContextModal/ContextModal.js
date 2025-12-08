@@ -1,18 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { ROLES } from "@utils/constants";
 import {
-  Form,
-  TextInput,
-  TextArea,
-  Dropdown,
-  FormGroup,
-  Modal,
-  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Accordion,
+  AccordionContent,
   AccordionItem,
-  IconButton,
-} from "@carbon/react";
-import { Add, TrashCan, Image as ImageIcon, Close } from "@carbon/icons-react";
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Plus, Trash2, Image as ImageIcon, X } from "lucide-react";
 import { loadContexts, saveContext } from "@utils/storageUtils";
 import { useToast } from "@context/ToastContext";
 import { useLoading } from "@context/LoadingContext";
@@ -315,231 +327,262 @@ const ContextModal = ({ isOpen, onClose, editMode = false, initialContext = null
   };
 
   return (
-    <Modal
-      size="lg"
-      open={isOpen}
-      modalHeading={editMode ? "Edit Conversation" : "Create Conversation"}
-      primaryButtonText={isLoading ? "Session is running..." : editMode ? "Update" : "Create"}
-      secondaryButtonText="Cancel"
-      onRequestSubmit={handleSubmit}
-      onRequestClose={onClose}
-      primaryButtonDisabled={isLoading}
-      preventCloseOnClickOutside
-    >
-      <Form>
-        <FormGroup className="form-group-half-width">
-          <TextInput
-            id="context-name"
-            labelText="Conversation Name"
-            placeholder="Enter a name for this conversation"
-            value={currentContext.name}
-            name="name"
-            onChange={handleInputChange}
-            required
-          />
-        </FormGroup>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{editMode ? "Edit Conversation" : "Create Conversation"}</DialogTitle>
+        </DialogHeader>
 
-        <FormGroup>
-          {currentContext.messages.map((msg, index) => (
-            <div key={index} className="margin-bottom-2rem">
-              <div className="flex-space-between-end">
-                <div className="flex-gap-1rem-end">
-                  <Dropdown
-                    id={`role-${index}`}
-                    titleText="Role (*)"
-                    label="Select role"
-                    size="sm"
-                    items={[ROLES.USER, ROLES.ASSISTANT, ROLES.TOOL, ROLES.CONTROL]}
-                    selectedItem={msg.role}
-                    className="width-150px"
-                    onChange={(item) => handleMessageChange(index, "role", item.selectedItem)}
-                  />
-                  {msg.role === ROLES.USER && (
-                    <IconButton
-                      kind="ghost"
-                      size="sm"
-                      label="Add images"
-                      align="right"
-                      onClick={() => handleOpenMediaUpload(index)}
-                      className="context-message-image-btn"
-                      badgeCount={msg.images?.length > 0 ? msg.images.length : undefined}
-                    >
-                      <ImageIcon />
-                    </IconButton>
-                  )}
-                  {msg.role === ROLES.TOOL && (
-                    <TextInput
-                      id={`tool-id-${index}`}
-                      labelText="Tool ID (*)"
-                      placeholder="Enter tool ID"
-                      value={msg.toolId || ""}
-                      className="max-width-150px"
-                      onChange={(e) => handleMessageChange(index, "toolId", e.target.value)}
-                      required
-                    />
-                  )}
-                </div>
-                <Button
-                  kind="ghost"
-                  size="sm"
-                  iconDescription="Delete"
-                  hasIconOnly={true}
-                  renderIcon={TrashCan}
-                  tooltipPosition="left"
-                  disabled={currentContext.messages.length === 1}
-                  onClick={() => removeMessage(index)}
-                />
-              </div>
-              <TextArea
-                id={`message-${index}`}
-                labelText={
-                  msg.role === ROLES.ASSISTANT && msg.toolCalls?.length > 0
-                    ? "Message"
-                    : "Message (*)"
-                }
-                placeholder="Enter message content (or use voice)"
-                value={msg.message}
-                rows={messageFocused === index ? 5 : 2}
-                onFocus={() => setMessageFocused(index)}
-                onBlur={() => setMessageFocused(null)}
-                onChange={(e) => handleMessageChange(index, "message", e.target.value)}
-                required={!(msg.role === ROLES.ASSISTANT && msg.toolCalls?.length > 0)}
-              />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="w-1/2">
+            <Label htmlFor="context-name">Conversation Name</Label>
+            <Input
+              id="context-name"
+              placeholder="Enter a name for this conversation"
+              value={currentContext.name}
+              name="name"
+              onChange={handleInputChange}
+              required
+            />
+          </div>
 
-              {/* Image previews for USER messages */}
-              {msg.role === ROLES.USER && msg.images?.length > 0 && (
-                <div className="context-message-images">
-                  {msg.images.map((image, imgIndex) => (
-                    <div key={imgIndex} className="context-message-image-wrapper">
-                      <img
-                        src={image.dataUrl || image.url}
-                        alt={image.name || `Image ${imgIndex + 1}`}
-                        className="context-message-image-preview"
-                        onClick={() => handleImageClick(image)}
-                      />
-                      <button
-                        type="button"
-                        className="context-message-image-remove"
-                        onClick={() => handleRemoveImage(index, imgIndex)}
-                        title="Remove image"
+          <div className="space-y-4">
+            {currentContext.messages.map((msg, index) => (
+              <div key={index} className="space-y-3 p-4 border rounded-lg">
+                <div className="flex justify-between items-end gap-4">
+                  <div className="flex gap-4 items-end flex-1">
+                    <div className="w-40">
+                      <Label htmlFor={`role-${index}`}>Role (*)</Label>
+                      <Select
+                        value={msg.role}
+                        onValueChange={(value) => handleMessageChange(index, "role", value)}
                       >
-                        <Close size={12} />
-                      </button>
+                        <SelectTrigger id={`role-${index}`}>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={ROLES.USER}>user</SelectItem>
+                          <SelectItem value={ROLES.ASSISTANT}>assistant</SelectItem>
+                          <SelectItem value={ROLES.TOOL}>tool</SelectItem>
+                          <SelectItem value={ROLES.CONTROL}>control</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {msg.role === ROLES.ASSISTANT && (
-                <div className="margin-top-1rem">
-                  <div className="flex-space-between margin-bottom-half">
-                    <h6 className="margin-0">Tool & Agent Calls (Optional)</h6>
-                    <Button
-                      kind="ghost"
-                      size="sm"
-                      renderIcon={Add}
-                      onClick={() => addToolCall(index)}
-                    >
-                      Add Tool Call
-                    </Button>
+                    {msg.role === ROLES.USER && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenMediaUpload(index)}
+                        className="relative"
+                      >
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                        Add images
+                        {msg.images?.length > 0 && (
+                          <span className="ml-2 bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs">
+                            {msg.images.length}
+                          </span>
+                        )}
+                      </Button>
+                    )}
+                    {msg.role === ROLES.TOOL && (
+                      <div className="max-w-[150px]">
+                        <Label htmlFor={`tool-id-${index}`}>Tool ID (*)</Label>
+                        <Input
+                          id={`tool-id-${index}`}
+                          placeholder="Enter tool ID"
+                          value={msg.toolId || ""}
+                          onChange={(e) => handleMessageChange(index, "toolId", e.target.value)}
+                          required
+                        />
+                      </div>
+                    )}
                   </div>
-
-                  {msg.toolCalls && msg.toolCalls.length > 0 && (
-                    <Accordion>
-                      {msg.toolCalls.map((toolCall, tcIndex) => (
-                        <AccordionItem
-                          key={tcIndex}
-                          title={`Tool Call ${tcIndex + 1} ${toolCall.function?.name || "..."}`}
-                        >
-                          <div className="padding-0-1rem">
-                            <div className="flex-end-neg-margin">
-                              <Button
-                                kind="danger--ghost"
-                                size="sm"
-                                renderIcon={TrashCan}
-                                onClick={() => removeToolCall(index, tcIndex)}
-                              >
-                                Remove Tool Call
-                              </Button>
-                            </div>
-
-                            <div className="flex-gap-1rem-margin-bottom">
-                              <TextInput
-                                id={`tool-call-id-${index}-${tcIndex}`}
-                                labelText="ID (*)"
-                                placeholder="Enter tool call ID"
-                                value={toolCall.id || ""}
-                                onChange={(e) =>
-                                  handleToolCallChange(index, tcIndex, "id", e.target.value)
-                                }
-                                required
-                              />
-                              <TextInput
-                                id={`tool-call-func-name-${index}-${tcIndex}`}
-                                labelText="Tool name (*)"
-                                placeholder="Enter function name"
-                                value={toolCall.function?.name || ""}
-                                onChange={(e) =>
-                                  handleToolCallChange(
-                                    index,
-                                    tcIndex,
-                                    "function.name",
-                                    e.target.value
-                                  )
-                                }
-                                required
-                              />
-                              <TextInput
-                                id={`tool-call-type-${index}-${tcIndex}`}
-                                labelText="ㅤ"
-                                // helperText="Type"
-                                value="function"
-                                disabled
-                              />
-                            </div>
-
-                            <FormGroup>
-                              <TextArea
-                                id={`tool-call-func-args-${index}-${tcIndex}`}
-                                labelText="Function Arguments - JSON (*)"
-                                placeholder='Enter JSON arguments, e.g. {"key": "value"}'
-                                value={
-                                  typeof toolCall.function?.arguments === "string"
-                                    ? toolCall.function.arguments
-                                    : JSON.stringify(toolCall.function?.arguments || "", null, 2)
-                                }
-                                rows={3}
-                                onChange={(e) =>
-                                  handleToolCallChange(
-                                    index,
-                                    tcIndex,
-                                    "function.arguments",
-                                    e.target.value
-                                  )
-                                }
-                                required
-                              />
-                            </FormGroup>
-                          </div>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    disabled={currentContext.messages.length === 1}
+                    onClick={() => removeMessage(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-              )}
-            </div>
-          ))}
-          <Button
-            kind="ghost"
-            size="md"
-            renderIcon={Add}
-            onClick={addMessage}
-            className="margin-top-0"
-          >
-            Add Message
+
+                <div>
+                  <Label htmlFor={`message-${index}`}>
+                    {msg.role === ROLES.ASSISTANT && msg.toolCalls?.length > 0
+                      ? "Message"
+                      : "Message (*)"}
+                  </Label>
+                  <Textarea
+                    id={`message-${index}`}
+                    placeholder="Enter message content (or use voice)"
+                    value={msg.message}
+                    rows={messageFocused === index ? 5 : 2}
+                    onFocus={() => setMessageFocused(index)}
+                    onBlur={() => setMessageFocused(null)}
+                    onChange={(e) => handleMessageChange(index, "message", e.target.value)}
+                    required={!(msg.role === ROLES.ASSISTANT && msg.toolCalls?.length > 0)}
+                  />
+                </div>
+
+                {/* Image previews for USER messages */}
+                {msg.role === ROLES.USER && msg.images?.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {msg.images.map((image, imgIndex) => (
+                      <div key={imgIndex} className="relative group">
+                        <img
+                          src={image.dataUrl || image.url}
+                          alt={image.name || `Image ${imgIndex + 1}`}
+                          className="h-20 w-20 object-cover rounded cursor-pointer hover:opacity-80"
+                          onClick={() => handleImageClick(image)}
+                        />
+                        <button
+                          type="button"
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => handleRemoveImage(index, imgIndex)}
+                          title="Remove image"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {msg.role === ROLES.ASSISTANT && (
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <h6 className="text-sm font-semibold">Tool & Agent Calls (Optional)</h6>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => addToolCall(index)}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Tool Call
+                      </Button>
+                    </div>
+
+                    {msg.toolCalls && msg.toolCalls.length > 0 && (
+                      <Accordion type="single" collapsible className="w-full">
+                        {msg.toolCalls.map((toolCall, tcIndex) => (
+                          <AccordionItem key={tcIndex} value={`tool-call-${tcIndex}`}>
+                            <AccordionTrigger>
+                              Tool Call {tcIndex + 1} {toolCall.function?.name || "..."}
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-4 p-2">
+                                <div className="flex justify-end">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeToolCall(index, tcIndex)}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Remove Tool Call
+                                  </Button>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-4">
+                                  <div>
+                                    <Label htmlFor={`tool-call-id-${index}-${tcIndex}`}>
+                                      ID (*)
+                                    </Label>
+                                    <Input
+                                      id={`tool-call-id-${index}-${tcIndex}`}
+                                      placeholder="Enter tool call ID"
+                                      value={toolCall.id || ""}
+                                      onChange={(e) =>
+                                        handleToolCallChange(index, tcIndex, "id", e.target.value)
+                                      }
+                                      required
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label htmlFor={`tool-call-func-name-${index}-${tcIndex}`}>
+                                      Tool name (*)
+                                    </Label>
+                                    <Input
+                                      id={`tool-call-func-name-${index}-${tcIndex}`}
+                                      placeholder="Enter function name"
+                                      value={toolCall.function?.name || ""}
+                                      onChange={(e) =>
+                                        handleToolCallChange(
+                                          index,
+                                          tcIndex,
+                                          "function.name",
+                                          e.target.value
+                                        )
+                                      }
+                                      required
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label>Type</Label>
+                                    <Input value="function" disabled />
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <Label htmlFor={`tool-call-func-args-${index}-${tcIndex}`}>
+                                    Function Arguments - JSON (*)
+                                  </Label>
+                                  <Textarea
+                                    id={`tool-call-func-args-${index}-${tcIndex}`}
+                                    placeholder='Enter JSON arguments, e.g. {"key": "value"}'
+                                    value={
+                                      typeof toolCall.function?.arguments === "string"
+                                        ? toolCall.function.arguments
+                                        : JSON.stringify(toolCall.function?.arguments || "", null, 2)
+                                    }
+                                    rows={3}
+                                    onChange={(e) =>
+                                      handleToolCallChange(
+                                        index,
+                                        tcIndex,
+                                        "function.arguments",
+                                        e.target.value
+                                      )
+                                    }
+                                    required
+                                  />
+                                </div>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="ghost"
+              size="md"
+              onClick={addMessage}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Message
+            </Button>
+          </div>
+        </form>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
           </Button>
-        </FormGroup>
-      </Form>
+          <Button onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? "Session is running..." : editMode ? "Update" : "Create"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
 
       {/* Media Upload Modal */}
       <UploadModal
@@ -554,7 +597,7 @@ const ContextModal = ({ isOpen, onClose, editMode = false, initialContext = null
           accept: ".jpg,.jpeg,.png,.gif,.webp,.bmp",
         }}
       />
-    </Modal>
+    </Dialog>
   );
 };
 
