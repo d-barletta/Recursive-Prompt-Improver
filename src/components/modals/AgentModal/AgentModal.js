@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  ComposedModal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  TextArea,
-  Toggle,
-  TextInput,
-  FormGroup,
-} from "@carbon/react";
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useSettings } from "@context/SettingsContext";
 import { useToast } from "@context/ToastContext";
 import { usePrompt } from "@context/PromptContext";
@@ -346,59 +348,51 @@ const AgentModal = ({ isOpen, onClose, editMode, initialAgent, onSave }) => {
 
   return (
     <>
-      <ComposedModal
-        size="lg"
-        open={isOpen}
-        onClose={onClose}
-        className="agent-modal"
-        preventCloseOnClickOutside
-        selectorsFloatingMenus={[
-          ".improve-prompt-modal",
-          ".advanced-multiselect-modal",
-          ".advanced-select-modal",
-        ]}
-      >
-        <ModalHeader title={editMode ? "Edit Agent" : "Create Agent"} />
-        <ModalBody>
-          <div className="agent-modal__content">
-            <FormGroup legendText="">
-              <div className="agent-name-model-row">
-                <div>
-                  <TextInput
-                    id="agent-name"
-                    labelText="Agent Name (*)"
-                    placeholder="Enter a unique name for this agent"
-                    value={agent.name}
-                    onChange={(e) => handleChange("name", e.target.value)}
-                    invalid={!!nameError}
-                    invalidText={nameError}
-                    helperText="1-64 characters, must start with a letter, can contain letters, numbers, hyphens, and underscores"
-                    required
-                  />
-                </div>
-                <div style={{ marginTop: "-2px" }}>
-                  <AdvancedSelect
-                    id="agent-model"
-                    titleText="Model (*)"
-                    label="Select a model"
-                    items={allAvailableModels.map((model) =>
-                      formatModelWithProvider(model, settings.providers)
-                    )}
-                    columns={["providerName", "capabilities"]}
-                    filterableColumns={["providerName"]}
-                    itemToString={(item) => (item ? item.text : "")}
-                    selectedItem={
-                      agent.coreModel
-                        ? formatModelWithProvider(agent.coreModel, settings.providers)
-                        : null
-                    }
-                    onChange={({ selectedItem }) => handleChange("coreModel", selectedItem)}
-                    disabled={allAvailableModels.length === 0}
-                    showProviderIcon
-                  />
-                </div>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editMode ? "Edit Agent" : "Create Agent"}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="agent-name">Agent Name (*)</Label>
+                <Input
+                  id="agent-name"
+                  placeholder="Enter a unique name for this agent"
+                  value={agent.name}
+                  onChange={(e) => handleChange("name", e.target.value)}
+                  className={nameError ? "border-destructive" : ""}
+                  required
+                />
+                {nameError && <p className="text-xs text-destructive mt-1">{nameError}</p>}
+                <p className="text-xs text-muted-foreground mt-1">
+                  1-64 characters, must start with a letter, can contain letters, numbers, hyphens, and underscores
+                </p>
               </div>
-            </FormGroup>
+              <div>
+                <AdvancedSelect
+                  id="agent-model"
+                  titleText="Model (*)"
+                  label="Select a model"
+                  items={allAvailableModels.map((model) =>
+                    formatModelWithProvider(model, settings.providers)
+                  )}
+                  columns={["providerName", "capabilities"]}
+                  filterableColumns={["providerName"]}
+                  itemToString={(item) => (item ? item.text : "")}
+                  selectedItem={
+                    agent.coreModel
+                      ? formatModelWithProvider(agent.coreModel, settings.providers)
+                      : null
+                  }
+                  onChange={({ selectedItem }) => handleChange("coreModel", selectedItem)}
+                  disabled={allAvailableModels.length === 0}
+                  showProviderIcon
+                />
+              </div>
+            </div>
 
             <InstructionsEditor
               instructions={agent.instructions}
@@ -421,96 +415,94 @@ const AgentModal = ({ isOpen, onClose, editMode, initialAgent, onSave }) => {
               textAreaRef={instructionsRef}
             />
 
-            <FormGroup legendText="">
-              <TextArea
+            <div>
+              <Label htmlFor="agent-description">Description</Label>
+              <Textarea
                 id="agent-description"
-                labelText="Description"
                 placeholder="Enter a brief description of what this agent does (optional)"
                 value={agent.description}
                 onChange={(e) => handleChange("description", e.target.value)}
                 rows={1}
                 disabled={isImprovingPrompt}
               />
-            </FormGroup>
+            </div>
 
-            <FormGroup legendText="">
-              <div className="agent-tools-json-row">
-                <div className="agent-tools-multiselect">
-                  <AdvancedMultiselect
-                    id="agent-tools"
-                    titleText="Tools & Agents"
-                    label="Select tools and agents"
-                    items={toolsWithDisabledState}
-                    direction="top"
-                    columns={["type", "origin"]}
-                    filterableColumns={["type", "origin"]}
-                    itemToString={(item) => {
-                      if (!item) return "";
-                      // Show type suffix for agents and MCP tools
-                      let suffix = "";
-                      if (item.isAgent) {
-                        suffix = " (Agent)";
-                      } else if (item.isMCP) {
-                        suffix = ` (MCP: ${item.mcpServerName})`;
-                      }
-                      return `${item.name}${suffix}`;
-                    }}
-                    selectedItems={agent.selectedTools}
-                    onChange={({ selectedItems }) => handleChange("selectedTools", selectedItems)}
-                    disabled={toolsWithDisabledState.length === 0}
-                    sortItems={(items) =>
-                      items.sort((a, b) => {
-                        if (a.disabled && !b.disabled) return 1;
-                        if (!a.disabled && b.disabled) return -1;
-                        return a.name.localeCompare(b.name);
-                      })
+            <div className="grid grid-cols-[1fr_auto] gap-4 items-end">
+              <div>
+                <AdvancedMultiselect
+                  id="agent-tools"
+                  titleText="Tools & Agents"
+                  label="Select tools and agents"
+                  items={toolsWithDisabledState}
+                  direction="top"
+                  columns={["type", "origin"]}
+                  filterableColumns={["type", "origin"]}
+                  itemToString={(item) => {
+                    if (!item) return "";
+                    // Show type suffix for agents and MCP tools
+                    let suffix = "";
+                    if (item.isAgent) {
+                      suffix = " (Agent)";
+                    } else if (item.isMCP) {
+                      suffix = ` (MCP: ${item.mcpServerName})`;
                     }
-                  />
-                </div>
-                <div className="agent-json-toggle">
-                  <Toggle
-                    hideLabel
-                    id="agent-json-output-toggle"
-                    labelText="JSON output"
-                    toggled={agent.useJsonOutput}
-                    onToggle={(checked) => handleChange("useJsonOutput", checked)}
-                  />
-                </div>
+                    return `${item.name}${suffix}`;
+                  }}
+                  selectedItems={agent.selectedTools}
+                  onChange={({ selectedItems }) => handleChange("selectedTools", selectedItems)}
+                  disabled={toolsWithDisabledState.length === 0}
+                  sortItems={(items) =>
+                    items.sort((a, b) => {
+                      if (a.disabled && !b.disabled) return 1;
+                      if (!a.disabled && b.disabled) return -1;
+                      return a.name.localeCompare(b.name);
+                    })
+                  }
+                />
               </div>
-            </FormGroup>
+              <div className="flex items-center gap-2 pb-2">
+                <Switch
+                  id="agent-json-output-toggle"
+                  checked={agent.useJsonOutput}
+                  onCheckedChange={(checked) => handleChange("useJsonOutput", checked)}
+                />
+                <Label htmlFor="agent-json-output-toggle">JSON output</Label>
+              </div>
+            </div>
 
             {agent.useJsonOutput && (
-              <FormGroup legendText="">
-                <div className="agent-json-schema-row">
-                  <div className="agent-json-toggle">
-                    <Toggle
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Switch
                       id="agent-json-schema-toggle"
-                      labelText="JSON schema"
-                      labelA="Off"
-                      labelB="On"
-                      toggled={agent.useJsonSchema}
-                      onToggle={(checked) => handleChange("useJsonSchema", checked)}
+                      checked={agent.useJsonSchema}
+                      onCheckedChange={(checked) => handleChange("useJsonSchema", checked)}
                     />
+                    <Label htmlFor="agent-json-schema-toggle">JSON schema</Label>
                   </div>
                   {agent.useJsonSchema && (
-                    <div className="agent-json-strict-toggle">
-                      <Toggle
+                    <div className="flex items-center gap-2">
+                      <Switch
                         id="agent-json-strict-toggle"
-                        labelText="Strict mode"
-                        labelA="Additional fields allowed in JSON"
-                        labelB="JSON strictly follows schema"
-                        toggled={agent.jsonSchemaStrict}
-                        onToggle={(checked) => handleChange("jsonSchemaStrict", checked)}
+                        checked={agent.jsonSchemaStrict}
+                        onCheckedChange={(checked) => handleChange("jsonSchemaStrict", checked)}
                       />
+                      <Label htmlFor="agent-json-strict-toggle">Strict mode</Label>
+                      <span className="text-xs text-muted-foreground">
+                        {agent.jsonSchemaStrict
+                          ? "JSON strictly follows schema"
+                          : "Additional fields allowed in JSON"}
+                      </span>
                     </div>
                   )}
                 </div>
-              </FormGroup>
+              </div>
             )}
 
             {agent.useJsonOutput && agent.useJsonSchema && (
-              <FormGroup legendText="">
-                <label className="cds--label">JSON Schema (*)</label>
+              <div className="space-y-2">
+                <Label>JSON Schema (*)</Label>
                 <JsonSchemaEditor
                   value={agent.jsonSchema}
                   onChange={(value) => handleChange("jsonSchema", value)}
@@ -524,18 +516,23 @@ const AgentModal = ({ isOpen, onClose, editMode, initialAgent, onSave }) => {
                       : jsonSchemaError
                   }
                 />
-              </FormGroup>
+              </div>
             )}
           </div>
-        </ModalBody>
-        <ModalFooter
-          primaryButtonText={editMode ? "Update" : "Create"}
-          secondaryButtonText="Cancel"
-          onRequestSubmit={handleSave}
-          onRequestClose={onClose}
-          primaryButtonDisabled={!isFormValid() || !hasChanges || isImprovingPrompt}
-        />
-      </ComposedModal>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={!isFormValid() || !hasChanges || isImprovingPrompt}
+            >
+              {editMode ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Diff Modal */}
       <DiffModal

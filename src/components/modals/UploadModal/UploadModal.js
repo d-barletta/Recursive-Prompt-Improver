@@ -1,13 +1,16 @@
 import React, { useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
-  Modal,
-  FileUploaderDropContainer,
-  FileUploaderItem,
-  ProgressBar,
-  Tag,
-} from "@carbon/react";
-import { Document, DocumentPdf, DocumentBlank } from "@carbon/icons-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { File, FileText, X } from "lucide-react";
 import { formatFileSize } from "@utils/fileUtils";
 
 /**
@@ -53,9 +56,9 @@ const UploadModal = ({
   // Get file icon based on extension
   const getFileIcon = (fileName) => {
     const ext = fileName.split(".").pop().toLowerCase();
-    if (ext === "pdf") return DocumentPdf;
-    if (["txt", "md", "json", "xml", "csv"].includes(ext)) return Document;
-    return DocumentBlank;
+    if (ext === "pdf") return File;
+    if (["txt", "md", "json", "xml", "csv"].includes(ext)) return FileText;
+    return File;
   };
 
   // Validate a single file
@@ -147,111 +150,168 @@ const UploadModal = ({
     progress && progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
 
   const modalContent = (
-    <Modal
-      size="md"
-      open={open}
-      modalHeading={title}
-      primaryButtonText={isUploading ? "Uploading..." : "Upload"}
-      secondaryButtonText="Cancel"
-      onRequestSubmit={handleUpload}
-      onRequestClose={handleClose}
-      primaryButtonDisabled={files.length === 0 || isUploading}
-      preventCloseOnClickOutside
-    >
-      <div className="upload-modal-content">
-        {/* Description */}
-        {description && <p className="upload-modal-description">{description}</p>}
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          {description && <DialogDescription>{description}</DialogDescription>}
+          {subdescription && (
+            <DialogDescription className="text-sm text-muted-foreground">
+              {subdescription}
+            </DialogDescription>
+          )}
+        </DialogHeader>
 
-        {/* Subdescription */}
-        {subdescription && <p className="upload-modal-subdescription">{subdescription}</p>}
-
-        {/* Accepted file types */}
-        <div className="upload-modal-info">
-          <strong className="upload-modal-label">Accepted file types:</strong>
-          <div className="upload-modal-tags">
-            {acceptedExtensions.slice(0, 8).map((ext) => (
-              <Tag key={ext} size="sm" type="gray">
-                {ext}
-              </Tag>
-            ))}
-            {acceptedExtensions.length > 8 && (
-              <span title={acceptedExtensions.slice(8).join(", ")}>
-                <Tag size="sm" type="outline">
+        <div className="space-y-4">
+          {/* Accepted file types */}
+          <div className="space-y-2">
+            <strong className="text-sm font-medium">Accepted file types:</strong>
+            <div className="flex flex-wrap gap-2">
+              {acceptedExtensions.slice(0, 8).map((ext) => (
+                <Badge key={ext} variant="secondary">
+                  {ext}
+                </Badge>
+              ))}
+              {acceptedExtensions.length > 8 && (
+                <Badge variant="outline" title={acceptedExtensions.slice(8).join(", ")}>
                   +{acceptedExtensions.length - 8} more
-                </Tag>
-              </span>
-            )}
+                </Badge>
+              )}
+            </div>
           </div>
+
+          {/* Max file size info */}
+          {maxFileSize && (
+            <p className="text-sm text-muted-foreground">
+              Maximum file size: {formatFileSize(maxFileSize)}
+            </p>
+          )}
+
+          {/* Single/Multiple info */}
+          <p className="text-sm text-muted-foreground">
+            {multiple ? "You can upload multiple files at once." : "Only one file can be uploaded."}
+          </p>
+
+          {/* Drop zone */}
+          <div
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+              isUploading
+                ? "border-muted bg-muted/10 cursor-not-allowed"
+                : "border-border hover:border-primary hover:bg-accent/5"
+            }`}
+            onClick={() => !isUploading && document.getElementById("file-input")?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!isUploading) {
+                const droppedFiles = Array.from(e.dataTransfer.files);
+                handleAddFiles(e, { addedFiles: droppedFiles });
+              }
+            }}
+          >
+            <File className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-sm font-medium">
+              Drag and drop {multiple ? "files" : "a file"} here or click to upload
+            </p>
+            <input
+              id="file-input"
+              type="file"
+              multiple={multiple}
+              accept={accept}
+              disabled={isUploading}
+              className="hidden"
+              onChange={(e) => {
+                const selectedFiles = Array.from(e.target.files || []);
+                handleAddFiles(e, { addedFiles: selectedFiles });
+                e.target.value = "";
+              }}
+            />
+          </div>
+
+          {/* File list */}
+          {files.length > 0 && (
+            <div className="space-y-2">
+              {files.map((file) => {
+                const FileIcon = getFileIcon(file.name);
+                return (
+                  <div
+                    key={file.name}
+                    className={`flex items-center justify-between p-3 rounded-md border ${
+                      errors[file.name]
+                        ? "border-destructive bg-destructive/5"
+                        : "border-border bg-card"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <FileIcon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{file.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatFileSize(file.size)}
+                        </p>
+                        {errors[file.name] && (
+                          <p className="text-xs text-destructive mt-1">{errors[file.name]}</p>
+                        )}
+                      </div>
+                    </div>
+                    {!isUploading && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRemoveFile(file.name)}
+                        className="flex-shrink-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Upload progress */}
+          {isUploading && progress && (
+            <div className="space-y-2">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  {progress.fileName
+                    ? `Processing: ${progress.fileName} (${progress.current}/${progress.total})`
+                    : `Processing files... (${progress.current}/${progress.total})`}
+                </p>
+                <div className="w-full bg-secondary rounded-full h-2">
+                  <div
+                    className="bg-primary h-2 rounded-full transition-all"
+                    style={{ width: `${progressPercentage}%` }}
+                  />
+                </div>
+              </div>
+              {progress.stage && (
+                <p className="text-sm text-muted-foreground">{progress.stage}</p>
+              )}
+              {progress.page && progress.totalPages && (
+                <p className="text-sm text-muted-foreground">
+                  Page {progress.page} of {progress.totalPages}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Max file size info */}
-        {maxFileSize && (
-          <p className="upload-modal-size-limit">
-            Maximum file size: {formatFileSize(maxFileSize)}
-          </p>
-        )}
-
-        {/* Single/Multiple info */}
-        <p className="upload-modal-mode">
-          {multiple ? "You can upload multiple files at once." : "Only one file can be uploaded."}
-        </p>
-
-        {/* Drop zone */}
-        <FileUploaderDropContainer
-          accept={acceptedExtensions}
-          multiple={multiple}
-          onAddFiles={handleAddFiles}
-          labelText={`Drag and drop ${multiple ? "files" : "a file"} here or click to upload`}
-          disabled={isUploading}
-        />
-
-        {/* File list */}
-        {files.length > 0 && (
-          <div className="upload-modal-file-list">
-            {files.map((file) => {
-              const FileIcon = getFileIcon(file.name);
-              return (
-                <FileUploaderItem
-                  key={file.name}
-                  name={file.name}
-                  status={isUploading ? "uploading" : "edit"}
-                  iconDescription="Remove file"
-                  onDelete={() => handleRemoveFile(file.name)}
-                  invalid={!!errors[file.name]}
-                  errorSubject={errors[file.name]}
-                  size="sm"
-                >
-                  <FileIcon className="upload-modal-file-icon" />
-                  <span className="upload-modal-file-size">{formatFileSize(file.size)}</span>
-                </FileUploaderItem>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Upload progress */}
-        {isUploading && progress && (
-          <div className="upload-modal-progress">
-            <ProgressBar
-              label={
-                progress.fileName
-                  ? `Processing: ${progress.fileName} (${progress.current}/${progress.total})`
-                  : `Processing files... (${progress.current}/${progress.total})`
-              }
-              value={progressPercentage}
-              size="md"
-              status={progressPercentage === 100 ? "finished" : "active"}
-            />
-            {progress.stage && <p className="upload-modal-stage">{progress.stage}</p>}
-            {progress.page && progress.totalPages && (
-              <p className="upload-modal-page-progress">
-                Page {progress.page} of {progress.totalPages}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-    </Modal>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose} disabled={isUploading}>
+            Cancel
+          </Button>
+          <Button onClick={handleUpload} disabled={files.length === 0 || isUploading}>
+            {isUploading ? "Uploading..." : "Upload"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 
   // Render in .rpi container to avoid z-index issues with other modals

@@ -1,14 +1,29 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { Modal, Button, InlineLoading, Dropdown, MultiSelect } from "@carbon/react";
 import {
-  TrashCan,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Trash2,
   FolderOpen,
   Play,
   Save,
   Book,
-  NotebookReference,
+  BookOpen,
   ArrowDown,
-} from "@carbon/icons-react";
+} from "lucide-react";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import UploadModal from "@components/modals/UploadModal";
@@ -819,11 +834,11 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
   }, [onClose]);
 
   return (
-    <Modal
+    <Dialog
       open={isOpen}
       onRequestClose={handleClose}
       passiveModal
-      modalHeading={modalTitle || "Chat Assistant"}
+      >
       size="lg"
       className="chat-modal"
       selectorPrimaryFocus="#chat-input-textarea"
@@ -833,21 +848,18 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
         <div className="chat-modal__navbar">
           <div className="chat-modal__navbar-actions_left">
             <Button
-              kind="ghost"
-              size="sm"
-              tooltipPosition="right"
-              renderIcon={Save}
+              variant="ghost"
+              size="icon"
               onClick={handleCreateContext}
               disabled={messages.length === 0 || isLoading}
-              hasIconOnly
-              iconDescription={
-                isContextSaved ? "Update saved conversation" : "Save as conversation"
-              }
-            />
+              title={isContextSaved ? "Update saved conversation" : "Save as conversation"}
+            >
+              <Save className="h-4 w-4" />
+            </Button>
             {showContextDropdown ? (
-              <Dropdown
+              <Select
                 id="context-dropdown"
-                titleText=""
+                label=""
                 label="Load conversation"
                 items={availableContexts}
                 itemToString={(item) => item?.name || ""}
@@ -858,15 +870,14 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
               />
             ) : (
               <Button
-                kind="ghost"
-                size="sm"
-                tooltipPosition="right"
-                renderIcon={FolderOpen}
+                variant="ghost"
+                size="icon"
                 onClick={() => setShowContextDropdown(true)}
                 disabled={isLoading || availableContexts.length === 0}
-                hasIconOnly
-                iconDescription="Load conversation"
-              />
+                title="Load conversation"
+              >
+                <FolderOpen className="h-4 w-4" />
+              </Button>
             )}
           </div>
           <div className="chat-modal__navbar-actions_center">
@@ -888,9 +899,9 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
           </div>
           <div className="chat-modal__navbar-actions_right">
             {showKnowledgeBaseSelect ? (
-              <MultiSelect
+              <Select multiple
                 id="knowledge-base-select"
-                titleText=""
+                label=""
                 label="Knowledge"
                 hideLabel
                 items={availableKnowledgeBases}
@@ -903,26 +914,24 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
               />
             ) : (
               <Button
-                kind="ghost"
-                size="sm"
-                tooltipPosition="left"
-                renderIcon={NotebookReference}
+                variant="ghost"
+                size="icon"
                 onClick={() => setShowKnowledgeBaseSelect(true)}
                 disabled={isLoading || !availableKnowledgeBases?.length}
-                hasIconOnly
-                iconDescription={"Add knowledge"}
-              />
+                title="Add knowledge"
+              >
+                <BookOpen className="h-4 w-4" />
+              </Button>
             )}
             <Button
-              kind="ghost"
-              size="sm"
-              tooltipPosition="left"
+              variant="ghost"
+              size="icon"
               onClick={handleClearChat}
-              renderIcon={TrashCan}
               disabled={messages.length === 0 || isLoading}
-              hasIconOnly
-              iconDescription="Clear chat"
-            />
+              title="Clear chat"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
@@ -966,13 +975,12 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
                 <ChatMessage role={partialMessRole} content={partialMess} />
               ) : null}
               <div className="chat-modal__loading">
-                <InlineLoading
-                  style={{ width: "fit-content" }}
-                  description="Thinking..."
-                  status="active"
-                />
+                <div className="flex items-center gap-2" style={{ width: "fit-content" }}>
+                  <Spinner className="h-4 w-4" />
+                  <span className="text-sm text-muted-foreground">Thinking...</span>
+                </div>
                 <Button
-                  kind="ghost"
+                  variant="ghost"
                   size="sm"
                   onClick={handleStopGeneration}
                   className="chat-modal__stop-button"
@@ -993,16 +1001,15 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
                 </p>
                 <div className="chat-modal__max-iterations-actions">
                   <Button
-                    kind="primary"
                     size="sm"
                     onClick={handleContinueExecution}
                     disabled={isLoading}
-                    renderIcon={Play}
                   >
+                    <Play className="h-4 w-4 mr-2" />
                     Continue
                   </Button>
                   <Button
-                    kind="secondary"
+                    variant="outline"
                     size="sm"
                     onClick={handleCancelContinuation}
                     disabled={isLoading}
@@ -1059,7 +1066,7 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
           accept: ".jpg,.jpeg,.png,.gif,.webp,.bmp",
         }}
       />
-    </Modal>
+    </Dialog>
   );
 };
 

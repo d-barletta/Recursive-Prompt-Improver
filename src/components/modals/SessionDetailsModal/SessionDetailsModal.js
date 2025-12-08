@@ -2,14 +2,21 @@ import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { useToast } from "@context/ToastContext";
 import { useLoading } from "@context/LoadingContext";
 import {
-  Modal,
-  CodeSnippet,
-  Grid,
-  Column,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
   Accordion,
+  AccordionContent,
   AccordionItem,
-  InlineLoading,
-} from "@carbon/react";
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Spinner } from "@/components/ui/spinner";
+import { Copy } from "lucide-react";
 import ReactECharts from "echarts-for-react";
 import ReactDiffViewer from "@alexbruf/react-diff-viewer";
 import "@alexbruf/react-diff-viewer/index.css";
@@ -106,138 +113,123 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
   }, []);
 
   return (
-    <Modal
-      className={"session-details-modal"}
-      open={isOpen}
-      modalHeading={`${session?.improveMode === false ? "Test Only" : "Improve & Test"} Session - ${formatDateFull(session?.timestamp)}`}
-      primaryButtonText="Close"
-      secondaryButtonText={isLoading ? "A session is running" : "Load into Form"}
-      onRequestClose={onClose}
-      onRequestSubmit={onClose}
-      onSecondarySubmit={isLoading ? () => {} : onLoadIntoForm}
-      size="lg"
-      hasScrollingContent
-      preventCloseOnClickOutside
-    >
-      {!!session && (
-        <div className="margin-top-1rem-bottom-1rem">
-          <Grid fullWidth className="padding-0">
-            <Column lg={6} md={3} sm={3} className="margin-bottom-2rem">
-              <h4 className="flex-align-center gap-05">
-                <ProviderIcon providerId={session.coreModel.providerId} size={20} />
-                Core Model - {session.coreModel.providerName || "Default"}
-              </h4>
-              <CodeSnippet
-                type="single"
-                autoAlign={true}
-                copyButtonDescription="Copy"
-                feedback="Copied"
-                className={"codeSnippet"}
-                wrapText={true}
-                onClick={() =>
-                  handleCopy(session?.coreModel?.text || session?.coreModel?.id, "Core Model")
-                }
-              >
-                {session?.coreModel?.text || session?.coreModel?.id || "Unknown model"}
-              </CodeSnippet>
-            </Column>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {session?.improveMode === false ? "Test Only" : "Improve & Test"} Session -{" "}
+            {formatDateFull(session?.timestamp)}
+          </DialogTitle>
+        </DialogHeader>
 
-            {session?.selectedTools && session.selectedTools.length > 0 && (
-              <Column lg={16} md={8} sm={4} className="margin-bottom-2rem">
-                <h4>🛠️ Selected Tools</h4>
-                <CodeSnippet
-                  type="single"
-                  autoAlign={true}
-                  copyButtonDescription="Copy"
-                  feedback="Copied"
-                  className={"codeSnippet"}
-                  wrapText={true}
-                  onClick={() =>
-                    handleCopy(
-                      session.selectedTools.map((t) => t?.name || "Unknown").join(", "),
-                      "Tools"
-                    )
-                  }
-                >
-                  {session.selectedTools.map((t) => t?.name || "Unknown").join(", ")}
-                </CodeSnippet>
-              </Column>
-            )}
-
-            <Column lg={16} md={8} sm={4} className="margin-bottom-2rem">
-              <h4>✨ Instructions</h4>
-              <CodeSnippet
-                type="multi"
-                autoAlign={true}
-                copyButtonDescription="Copy"
-                feedback="Copied"
-                className={"codeSnippet"}
-                wrapText={true}
-                onClick={() => handleCopy(session.instructions, "Instructions")}
-              >
-                {session.instructions}
-              </CodeSnippet>
-            </Column>
-
-            {session?.settingsModel && (
-              <Column lg={8} md={4} sm={4} className="margin-bottom-2rem">
-                <h4 className="flex-align-center gap-05">
-                  <ProviderIcon providerId={session?.settingsModel?.providerId} size={20} />
-                  Default Model - {session?.settingsModel?.providerName || ""}
+        <div className="space-y-6">
+        {!!session && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="flex items-center gap-2 text-sm font-semibold mb-2">
+                  <ProviderIcon providerId={session.coreModel.providerId} size={20} />
+                  Core Model - {session.coreModel.providerName || "Default"}
                 </h4>
-                <CodeSnippet
-                  type="single"
-                  autoAlign={true}
-                  copyButtonDescription="Copy"
-                  feedback="Copied"
-                  className={"codeSnippet"}
-                  wrapText={true}
+                <div
+                  className="relative p-3 bg-muted rounded border font-mono text-sm cursor-pointer hover:bg-muted/80"
                   onClick={() =>
-                    handleCopy(
-                      session?.settingsModel?.text || session?.settingsModel?.id,
-                      "Settings Model"
-                    )
+                    handleCopy(session?.coreModel?.text || session?.coreModel?.id, "Core Model")
                   }
                 >
-                  {session?.settingsModel?.text || session?.settingsModel?.id || "Unknown model"}
-                </CodeSnippet>
-              </Column>
-            )}
+                  <Copy className="absolute top-2 right-2 h-4 w-4 text-muted-foreground" />
+                  <div className="pr-8 break-all">
+                    {session?.coreModel?.text || session?.coreModel?.id || "Unknown model"}
+                  </div>
+                </div>
+              </div>
 
-            {session?.settingsEmbeddingModel && (
-              <Column lg={8} md={4} sm={4} className="margin-bottom-2rem">
-                <h4 className="flex-align-center gap-05">
-                  <ProviderIcon
-                    providerId={session?.settingsEmbeddingModel?.providerId}
-                    size={20}
-                  />
-                  Default Embedding Model - {session?.settingsEmbeddingModel?.providerName || ""}
-                </h4>
-                <CodeSnippet
-                  type="single"
-                  autoAlign={true}
-                  copyButtonDescription="Copy"
-                  feedback="Copied"
-                  className={"codeSnippet"}
-                  wrapText={true}
-                  onClick={() =>
-                    handleCopy(
-                      session?.settingsEmbeddingModel?.text || session?.settingsEmbeddingModel?.id,
-                      "Settings Embedding Model"
-                    )
-                  }
+              {session?.selectedTools && session.selectedTools.length > 0 && (
+                <div className="col-span-2">
+                  <h4 className="text-sm font-semibold mb-2">🛠️ Selected Tools</h4>
+                  <div
+                    className="relative p-3 bg-muted rounded border font-mono text-sm cursor-pointer hover:bg-muted/80"
+                    onClick={() =>
+                      handleCopy(
+                        session.selectedTools.map((t) => t?.name || "Unknown").join(", "),
+                        "Tools"
+                      )
+                    }
+                  >
+                    <Copy className="absolute top-2 right-2 h-4 w-4 text-muted-foreground" />
+                    <div className="pr-8 break-all">
+                      {session.selectedTools.map((t) => t?.name || "Unknown").join(", ")}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="col-span-2">
+                <h4 className="text-sm font-semibold mb-2">✨ Instructions</h4>
+                <div
+                  className="relative p-3 bg-muted rounded border font-mono text-sm cursor-pointer hover:bg-muted/80 whitespace-pre-wrap"
+                  onClick={() => handleCopy(session.instructions, "Instructions")}
                 >
-                  {session?.settingsEmbeddingModel?.text ||
-                    session?.settingsEmbeddingModel?.id ||
-                    "Unknown embedding model"}
-                </CodeSnippet>
-              </Column>
-            )}
+                  <Copy className="absolute top-2 right-2 h-4 w-4 text-muted-foreground" />
+                  <div className="pr-8">{session.instructions}</div>
+                </div>
+              </div>
+
+              {session?.settingsModel && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-sm font-semibold mb-2">
+                    <ProviderIcon providerId={session?.settingsModel?.providerId} size={20} />
+                    Default Model - {session?.settingsModel?.providerName || ""}
+                  </h4>
+                  <div
+                    className="relative p-3 bg-muted rounded border font-mono text-sm cursor-pointer hover:bg-muted/80"
+                    onClick={() =>
+                      handleCopy(
+                        session?.settingsModel?.text || session?.settingsModel?.id,
+                        "Settings Model"
+                      )
+                    }
+                  >
+                    <Copy className="absolute top-2 right-2 h-4 w-4 text-muted-foreground" />
+                    <div className="pr-8 break-all">
+                      {session?.settingsModel?.text || session?.settingsModel?.id || "Unknown model"}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {session?.settingsEmbeddingModel && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-sm font-semibold mb-2">
+                    <ProviderIcon
+                      providerId={session?.settingsEmbeddingModel?.providerId}
+                      size={20}
+                    />
+                    Default Embedding Model - {session?.settingsEmbeddingModel?.providerName || ""}
+                  </h4>
+                  <div
+                    className="relative p-3 bg-muted rounded border font-mono text-sm cursor-pointer hover:bg-muted/80"
+                    onClick={() =>
+                      handleCopy(
+                        session?.settingsEmbeddingModel?.text || session?.settingsEmbeddingModel?.id,
+                        "Settings Embedding Model"
+                      )
+                    }
+                  >
+                    <Copy className="absolute top-2 right-2 h-4 w-4 text-muted-foreground" />
+                    <div className="pr-8 break-all">
+                      {session?.settingsEmbeddingModel?.text ||
+                        session?.settingsEmbeddingModel?.id ||
+                        "Unknown embedding model"}
+                    </div>
+                  </div>
+                </div>
+              )}
             {session.improveMode !== false && (
               <>
-                <Column lg={16} md={8} sm={4} className="margin-bottom-2rem">
+                <div className="col-span-2 mb-8">
                   <h4>📦 Final Output</h4>
-                  <CodeSnippet
+                  <CodeBlock
                     type="multi"
                     autoAlign={true}
                     copyButtonDescription="Copy"
@@ -249,11 +241,13 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                     }
                   >
                     {session.output[session.output.length - 1]}
-                  </CodeSnippet>
-                </Column>
-                <Column lg={16} md={8} sm={4} className="margin-bottom-1rem">
-                  <Accordion>
-                    <AccordionItem title="🆚 Instructions VS Final Output">
+                  </CodeBlock>
+                </div>
+                <div className="col-span-2 mb-4">
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="🆚 Instructions VS Final Output">
+                      <AccordionTrigger>🆚 Instructions VS Final Output</AccordionTrigger>
+                      <AccordionContent>
                       <ReactDiffViewer
                         showDiffOnly={false}
                         hideLineNumbers={true}
@@ -264,13 +258,14 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                         compareMethod={"diffWords"}
                         ig
                       />
+                    </AccordionContent>
                     </AccordionItem>
                   </Accordion>
-                </Column>
+                </div>
               </>
             )}
             {loaddata && (
-              <Column lg={16} md={8} sm={4} className="margin-top-2rem">
+              <div className="col-span-2 mt-8">
                 <h4 className="margin-bottom-2rem">🧪 Tests details</h4>
                 {session.improveMode !== false && (
                   <ReactECharts
@@ -280,7 +275,7 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                   />
                 )}
                 {session.tests?.map((testGroup, iter) => (
-                  <Accordion key={`acc_${iter}`}>
+                  <Accordion type="single" collapsible className="w-full" key={`acc_${iter}`}>
                     {session.tests?.length > 1 && (
                       <h4 className="margin-bottom-1rem-top-1rem">🔄 Iteration {`${iter + 1}`}</h4>
                     )}
@@ -288,50 +283,52 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                     {session.improveMode !== false && (
                       <AccordionItem
                         key={`iterations_${iter}`}
-                        title={`🆚 Instructions VS ${
-                          iter === 0 ? "original instructions" : `Iteration ${iter}`
-                        }`}
+                        value={`iterations_${iter}`}
                       >
-                        <ReactDiffViewer
-                          showDiffOnly={false}
-                          hideLineNumbers={true}
-                          useDarkTheme={true}
-                          oldValue={
-                            (iter === 0 ? session.instructions : session.output?.[iter - 1]) || ""
-                          }
-                          newValue={session.output?.[iter] || ""}
-                          splitView={false}
-                          compareMethod={"diffWords"}
-                          ig
-                        />
+                        <AccordionTrigger>
+                          {`🆚 Instructions VS ${
+                            iter === 0 ? "original instructions" : `Iteration ${iter}`
+                          }`}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <ReactDiffViewer
+                            showDiffOnly={false}
+                            hideLineNumbers={true}
+                            useDarkTheme={true}
+                            oldValue={
+                              (iter === 0 ? session.instructions : session.output?.[iter - 1]) || ""
+                            }
+                            newValue={session.output?.[iter] || ""}
+                            splitView={false}
+                            compareMethod={"diffWords"}
+                            ig
+                          />
+                        </AccordionContent>
                       </AccordionItem>
                     )}
                     {testGroup.map((test, pairIndex) => (
                       <AccordionItem
                         className="testAccordionItem"
                         key={`iteration_${pairIndex}`}
-                        title={
-                          <>
+                        value={`iteration_${pairIndex}`}
+                      >
+                        <AccordionTrigger>
+                          <div className="flex items-center gap-2">
                             <strong>{`Test ${pairIndex + 1}`}</strong>
                             {!!test?.out?.length && (
-                              <span className="code-snippet-monospace">
+                              <span className="font-mono text-xs">
                                 {test.isEqual
                                   ? `🟢 100% equal`
-                                  : `🎯 Score: ${`${test.aiScore.toFixed(2)}%`.padStart(
-                                      6,
-                                      "ㅤ "
-                                    )} ㅤ ㅤ👯‍♂️ Similarity: ${parseFloat(test.similarity * 100).toFixed(2)}%`}
+                                  : `🎯 Score: ${test.aiScore.toFixed(2)}% ㅤ 👯‍♂️ Similarity: ${parseFloat(test.similarity * 100).toFixed(2)}%`}
                               </span>
                             )}
-                          </>
-                        }
-                        open={testGroup.length === 1}
-                      >
-                        <>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
                           {test.settings?.context && (
                             <>
                               <h6 className="margin-top-1rem">💬 Test Context</h6>
-                              <CodeSnippet
+                              <CodeBlock
                                 type="multi"
                                 autoAlign={true}
                                 copyButtonDescription="Copy Name"
@@ -351,7 +348,7 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                       `\nRole: ${message?.role || ROLES.USER}\nText: ${message.message}\n`
                                   )
                                   .join("\n-------------------------\n")}
-                              </CodeSnippet>
+                              </CodeBlock>
                             </>
                           )}
                           {test.settings?.model && (
@@ -363,7 +360,7 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                 />
                                 Test Model - {test.settings.model.providerName || ""}
                               </h6>
-                              <CodeSnippet
+                              <CodeBlock
                                 type="single"
                                 autoAlign={true}
                                 copyButtonDescription="Copy"
@@ -380,7 +377,7 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                 {test.settings.model.text ||
                                   test.settings.model.id ||
                                   "Unknown model"}
-                              </CodeSnippet>
+                              </CodeBlock>
                             </>
                           )}
                           {test.settings?.embeddingModel && (
@@ -392,7 +389,7 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                 />
                                 Embeddings Model - {test.settings.embeddingModel.providerName || ""}
                               </h6>
-                              <CodeSnippet
+                              <CodeBlock
                                 type="single"
                                 autoAlign={true}
                                 copyButtonDescription="Copy"
@@ -410,13 +407,13 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                 {test.settings.embeddingModel.text ||
                                   test.settings.embeddingModel.id ||
                                   "Unknown embedding model"}
-                              </CodeSnippet>
+                              </CodeBlock>
                             </>
                           )}
                           {/* {test.settings?.checkTypes && (
                           <>
                             <h6 className="margin-top-1rem">✅ Check Types</h6>
-                            <CodeSnippet
+                            <CodeBlock
                               type="single"
                               autoAlign={true}
                               copyButtonDescription="Copy"
@@ -426,13 +423,13 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                               onClick={() => handleCopy(test.settings.checkTypes.join(", "), "Check Types")}
                             >
                               {test.settings.checkTypes.join(", ")}
-                            </CodeSnippet>
+                            </CodeBlock>
                           </>
                         )} */}
                           {test.isJsonValid !== null && test.isJsonValid !== undefined && (
                             <>
                               <h6 className="margin-top-1rem">📋 JSON Validity Check</h6>
-                              <CodeSnippet
+                              <CodeBlock
                                 type="single"
                                 autoAlign={true}
                                 copyButtonDescription="Copy"
@@ -447,13 +444,13 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                 }
                               >
                                 {test.isJsonValid ? "✅ Valid JSON" : "🚫 Invalid JSON"}
-                              </CodeSnippet>
+                              </CodeBlock>
                             </>
                           )}
                           {test.toolsCallResult && (
                             <>
                               <h6 className="margin-top-1rem">🛠️ Tools Calls Check</h6>
-                              <CodeSnippet
+                              <CodeBlock
                                 type={test.toolsCallResult.success ? "single" : "multi"}
                                 autoAlign={true}
                                 copyButtonDescription="Copy"
@@ -472,7 +469,7 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                 {test.toolsCallResult.success
                                   ? `✅ Valid - All required tools called`
                                   : `🚫 Invalid - Some tools were not called\nCalled: ${test.toolsCallResult.calledTools?.map((t) => t.name)?.join(", ") || "none"}\nMissing: ${test.toolsCallResult.missing?.join(", ") || "unknown"}`}
-                              </CodeSnippet>
+                              </CodeBlock>
                               {test.toolsCallResult.calledTools &&
                                 test.toolsCallResult.calledTools.length > 0 && (
                                   <>
@@ -507,7 +504,7 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                             <h6 className="margin-top-0-5rem-margin-bottom-0-5rem margin-top-1rem">
                                               Expected Parameters
                                             </h6>
-                                            <CodeSnippet
+                                            <CodeBlock
                                               type="multi"
                                               autoAlign={true}
                                               copyButtonDescription="Copy"
@@ -522,7 +519,7 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                               }
                                             >
                                               {JSON.stringify(tool.expectedParams, null, 2)}
-                                            </CodeSnippet>
+                                            </CodeBlock>
                                           </>
                                         )}
                                         {tool.expectedValues &&
@@ -531,7 +528,7 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                               <h6 className="margin-top-0-5rem-margin-bottom-0-5rem margin-top-1rem">
                                                 Expected Values
                                               </h6>
-                                              <CodeSnippet
+                                              <CodeBlock
                                                 type="multi"
                                                 autoAlign={true}
                                                 copyButtonDescription="Copy"
@@ -546,13 +543,13 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                                 }
                                               >
                                                 {JSON.stringify(tool.expectedValues, null, 2)}
-                                              </CodeSnippet>
+                                              </CodeBlock>
                                             </>
                                           )}
                                         <h6 className="margin-top-0-5rem-margin-bottom-0-5rem margin-top-1rem">
                                           Actual Arguments
                                         </h6>
-                                        <CodeSnippet
+                                        <CodeBlock
                                           type="multi"
                                           autoAlign={true}
                                           copyButtonDescription="Copy"
@@ -567,19 +564,18 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                           }
                                         >
                                           {parseToolArguments(tool.arguments)}
-                                        </CodeSnippet>
+                                        </CodeBlock>
                                       </div>
                                     ))}
                                   </>
                                 )}
                             </>
                           )}
-                        </>
                         {!!test?.out?.length && (
                           <>
                             <h6 className="margin-top-1rem">📥 Input vs Output</h6>
                             <h6 className="margin-top-1rem">Input</h6>
-                            <CodeSnippet
+                            <CodeBlock
                               type="multi"
                               autoAlign={true}
                               copyButtonDescription="Copy"
@@ -589,9 +585,9 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                               onClick={() => handleCopy(test.in, "Input")}
                             >
                               {test.in}
-                            </CodeSnippet>
+                            </CodeBlock>
                             <h6 className="margin-top-1rem">Expected Output</h6>
-                            <CodeSnippet
+                            <CodeBlock
                               type="multi"
                               autoAlign={true}
                               copyButtonDescription="Copy"
@@ -601,9 +597,9 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                               onClick={() => handleCopy(test.out, "Expected output")}
                             >
                               {test.out}
-                            </CodeSnippet>
+                            </CodeBlock>
                             <h6 className="margin-top-1rem">Actual Result</h6>
-                            <CodeSnippet
+                            <CodeBlock
                               type="multi"
                               autoAlign={true}
                               copyButtonDescription="Copy"
@@ -613,19 +609,19 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                               onClick={() => handleCopy(test.result, "Actual result")}
                             >
                               {test.result}
-                            </CodeSnippet>
+                            </CodeBlock>
                             {test.isEqual ? (
-                              <InlineLoading
-                                className="margin-top-1rem"
-                                description={`Great! Test output is 100% equal to expected result!`}
-                                status="finished"
-                              />
+                              <div className="flex items-center gap-2 mt-4 text-green-500">
+                                <span className="text-sm">
+                                  ✓ Great! Test output is 100% equal to expected result!
+                                </span>
+                              </div>
                             ) : (
                               <>
                                 <h6 className="margin-top-1rem">
                                   AI feedback - 🎯 Final Score {test.aiScore}%
                                 </h6>
-                                <CodeSnippet
+                                <CodeBlock
                                   type="multi"
                                   autoAlign={true}
                                   copyButtonDescription="Copy"
@@ -636,7 +632,7 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                   {test.aiFeedback?.trim()?.length
                                     ? test.aiFeedback
                                     : "No feedback"}
-                                </CodeSnippet>
+                                </CodeBlock>
                                 <h6 className="margin-top-1rem-bottom-1rem">Comparison</h6>
                                 <ReactDiffViewer
                                   showDiffOnly={false}
@@ -648,7 +644,7 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                   compareMethod={"diffWords"}
                                 />
                                 <h6 className="margin-top-1rem">Scoring details</h6>
-                                <CodeSnippet
+                                <CodeBlock
                                   type="multi"
                                   autoAlign={true}
                                   copyButtonDescription="Copy"
@@ -658,22 +654,49 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                 >
                                   {`Cosine Similarity: ${test.similarity}\n\n`}
                                   {JSON.stringify(test.scores, null, 2)}
-                                </CodeSnippet>
+                                </CodeBlock>
                               </>
                             )}
                           </>
                         )}
-                      </AccordionItem>
+                      </AccordionContent>
+                    </AccordionItem>
                     ))}
                   </Accordion>
                 ))}
-              </Column>
+              </div>
             )}
-          </Grid>
+          </div>
         </div>
-      )}
-    </Modal>
+        )}
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={isLoading ? () => {} : onLoadIntoForm}
+            disabled={isLoading}
+          >
+            {isLoading ? "A session is running" : "Load into Form"}
+          </Button>
+          <Button onClick={onClose}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
+
+// Helper component for code display with copy functionality
+const CodeBlock = ({ children, onClick, multiline = false }) => (
+  <div
+    className={`relative p-3 bg-muted rounded border font-mono text-sm cursor-pointer hover:bg-muted/80 ${
+      multiline ? "whitespace-pre-wrap" : ""
+    }`}
+    onClick={onClick}
+  >
+    <Copy className="absolute top-2 right-2 h-4 w-4 text-muted-foreground" />
+    <div className="pr-8 break-all">{children}</div>
+  </div>
+);
 
 export default SessionDetailsModal;
