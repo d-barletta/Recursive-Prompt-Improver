@@ -510,21 +510,14 @@ const TestSettingsModal = ({
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={handleClose}
-      > settings`}
-      primaryButtonText="Save"
-      secondaryButtonText="Cancel"
-      primaryButtonDisabled={!hasChanges || (isToolsCallEnabled && tempToolsCalled.length === 0)}
-      onRequestSubmit={handleSubmit}
-      hasScrollingContent
-      size="lg"
-      preventCloseOnClickOutside
-    >
-      {open && (
-        <>
-          <div className="min-height-23rem testSettingsModalBody">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Test {testIndex + 1} settings</DialogTitle>
+        </DialogHeader>
+
+        {open && (
+          <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Row 1: Model and Embedding Model */}
               <div>
@@ -619,7 +612,7 @@ const TestSettingsModal = ({
                 <div className="space-y-2">
                   <div className="test-settings-images-section">
                     <div className="test-settings-images-header">
-                      <label className="cds--label">
+                      <label className="text-sm font-medium">
                         Test images{" "}
                         {selectedModelItem?.supportsVision ? "" : "(Require vision support)"}
                       </label>
@@ -661,7 +654,7 @@ const TestSettingsModal = ({
                         </div>
                       )}
                     </div>
-                    <div className="cds--form__helper-text">
+                    <div className="text-sm text-muted-foreground">
                       {" "}
                       {selectedModelItem?.supportsVision
                         ? "Add images to include with test input"
@@ -887,7 +880,7 @@ const TestSettingsModal = ({
               {isJsonCheckEnabled && tempUseJsonSchema && (
                 <div>
                   <div className="space-y-2">
-                    <label className="cds--label">JSON Schema</label>
+                    <label className="text-sm font-medium">JSON Schema</label>
                     <JsonSchemaEditor
                       value={tempJsonSchema}
                       onChange={(value) => setTempJsonSchema(value)}
@@ -907,21 +900,34 @@ const TestSettingsModal = ({
             </div>
           </div>
 
-          {/* Upload Modal for images */}
-          <UploadModal
-            open={showMediaUploadModal}
-            onClose={() => setShowMediaUploadModal(false)}
-            onUpload={handleMediaUpload}
-            options={{
-              title: "Add Test Input Images",
-              description:
-                "Upload images to include with the test input. Images will be resized to max 1024px.",
-              accept: ".jpg,.jpeg,.png,.gif,.webp",
-              multiple: true,
-            }}
-          />
-        </>
-      )}
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!hasChanges || (isToolsCallEnabled && tempToolsCalled.length === 0)}
+          >
+            Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+
+      {/* Upload Modal for images */}
+      <UploadModal
+        open={showMediaUploadModal}
+        onClose={() => setShowMediaUploadModal(false)}
+        onUpload={handleMediaUpload}
+        options={{
+          title: "Add Test Input Images",
+          description:
+            "Upload images to include with the test input. Images will be resized to max 1024px.",
+          accept: ".jpg,.jpeg,.png,.gif,.webp",
+          multiple: true,
+        }}
+      />
     </Dialog>
   );
 };
