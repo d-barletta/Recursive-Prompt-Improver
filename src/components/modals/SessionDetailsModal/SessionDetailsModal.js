@@ -122,8 +122,9 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
           </DialogTitle>
         </DialogHeader>
 
+        <div className="space-y-6">
         {!!session && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h4 className="flex items-center gap-2 text-sm font-semibold mb-2">
@@ -656,6 +657,7 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
                                 </CodeBlock>
                               </>
                             )}
+                          </>
                         )}
                       </AccordionContent>
                     </AccordionItem>
@@ -665,9 +667,9 @@ const SessionDetailsModal = ({ isOpen, session, onClose, onLoadIntoForm }) => {
               </div>
             )}
           </div>
-          </div>
         </div>
-      )}
+        )}
+        </div>
 
         <DialogFooter>
           <Button

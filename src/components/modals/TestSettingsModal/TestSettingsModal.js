@@ -527,7 +527,7 @@ const TestSettingsModal = ({
           <div className="min-height-23rem testSettingsModalBody">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Row 1: Model and Embedding Model */}
-              <Column lg={8} md={4} sm={4}>
+              <div>
                 <div className="space-y-2">
                   <AdvancedSelect
                     id={`modelDropdown-test-${testIndex}`}
@@ -547,7 +547,7 @@ const TestSettingsModal = ({
                   />
                 </div>
               </div>
-              <Column lg={8} md={4} sm={4}>
+              <div>
                 <div className="space-y-2">
                   <AdvancedSelect
                     id={`embeddingModelDropdown-test-${testIndex}`}
@@ -573,7 +573,7 @@ const TestSettingsModal = ({
               </div>
 
               {/* Row 2: Context and Check Types */}
-              <Column lg={8} md={4} sm={4} className="margin-top-1rem">
+              <div>
                 <div className="space-y-2">
                   <Dropdown
                     className="context-dropdown"
@@ -594,7 +594,7 @@ const TestSettingsModal = ({
 
               {/* Knowledge Bases MultiSelect */}
 
-              <Column lg={8} md={4} sm={4} className="margin-top-1rem">
+              <div>
                 <div className="space-y-2">
                   <MultiSelect
                     key={`knowledgeBasesMultiSelect-${testIndex}-${open}`}
@@ -615,7 +615,7 @@ const TestSettingsModal = ({
               </div>
 
               {/* Test Input Images */}
-              <Column lg={8} md={4} sm={4} className="margin-top-1rem">
+              <div>
                 <div className="space-y-2">
                   <div className="test-settings-images-section">
                     <div className="test-settings-images-header">
@@ -637,7 +637,7 @@ const TestSettingsModal = ({
                         disabled={!selectedModelItem?.supportsVision}
                       >
                         <ImageIcon />
-                      </IconButton>
+                      </Button>
                       {tempImages.length > 0 && (
                         <div className="test-settings-images-grid">
                           {tempImages.map((image, imgIndex) => (
@@ -671,7 +671,7 @@ const TestSettingsModal = ({
                 </div>
               </div>
 
-              <Column lg={8} md={4} sm={4} className="margin-top-1rem">
+              <div>
                 <div className="space-y-2">
                   <MultiSelect
                     key={`checkTypesMultiSelect-${testIndex}-${open}`}
@@ -736,7 +736,7 @@ const TestSettingsModal = ({
 
               {/* Row 3: Tools Called MultiSelect (only show when Tools Call check is enabled) */}
               {isToolsCallEnabled && hasAvailableTools && (
-                <Column lg={16} md={8} sm={4} className="margin-top-1rem">
+                <div>
                   <div className="space-y-2">
                     <MultiSelect
                       key={`toolsCalledMultiSelect-${testIndex}-${open}`}
@@ -760,7 +760,7 @@ const TestSettingsModal = ({
 
               {/* Row 3b: Expected Parameters for each selected tool (only show when tools are selected) */}
               {isToolsCallEnabled && tempToolsCalled.length > 0 && (
-                <Column lg={16} md={8} sm={4} className="margin-top-1rem">
+                <div>
                   <div className="space-y-2">
                     <label className="cds--label margin-bottom-half">
                       Expected Tool Parameters (optional)
@@ -854,7 +854,7 @@ const TestSettingsModal = ({
               {/* Row 4: Use JSON Schema and Strict toggles (only show when JSON check is enabled) */}
               {isJsonCheckEnabled && (
                 <>
-                  <Column lg={8} md={4} sm={4} className="margin-top-1rem">
+                  <div>
                     <div className="space-y-2">
                       <Switch
                         id={`useJsonSchemaToggle-test-${testIndex}`}
@@ -867,7 +867,7 @@ const TestSettingsModal = ({
                     </div>
                   </div>
                   {tempUseJsonSchema && (
-                    <Column lg={8} md={4} sm={4} className="margin-top-1rem">
+                    <div>
                       <div className="space-y-2">
                         <Switch
                           id={`jsonSchemaStrictToggle-test-${testIndex}`}
@@ -885,7 +885,7 @@ const TestSettingsModal = ({
 
               {/* Row 5: JSON Schema textarea (only show when Use JSON Schema is enabled) */}
               {isJsonCheckEnabled && tempUseJsonSchema && (
-                <Column lg={16} md={8} sm={4} className="margin-top-1rem">
+                <div>
                   <div className="space-y-2">
                     <label className="cds--label">JSON Schema</label>
                     <JsonSchemaEditor
