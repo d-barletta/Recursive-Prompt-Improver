@@ -848,17 +848,14 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
         <div className="chat-modal__navbar">
           <div className="chat-modal__navbar-actions_left">
             <Button
-              kind="ghost"
-              size="sm"
-              tooltipPosition="right"
-              renderIcon={Save}
+              variant="ghost"
+              size="icon"
               onClick={handleCreateContext}
               disabled={messages.length === 0 || isLoading}
-              hasIconOnly
-              iconDescription={
-                isContextSaved ? "Update saved conversation" : "Save as conversation"
-              }
-            />
+              title={isContextSaved ? "Update saved conversation" : "Save as conversation"}
+            >
+              <Save className="h-4 w-4" />
+            </Button>
             {showContextDropdown ? (
               <Select
                 id="context-dropdown"
@@ -873,15 +870,14 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
               />
             ) : (
               <Button
-                kind="ghost"
-                size="sm"
-                tooltipPosition="right"
-                renderIcon={FolderOpen}
+                variant="ghost"
+                size="icon"
                 onClick={() => setShowContextDropdown(true)}
                 disabled={isLoading || availableContexts.length === 0}
-                hasIconOnly
-                iconDescription="Load conversation"
-              />
+                title="Load conversation"
+              >
+                <FolderOpen className="h-4 w-4" />
+              </Button>
             )}
           </div>
           <div className="chat-modal__navbar-actions_center">
@@ -918,26 +914,24 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
               />
             ) : (
               <Button
-                kind="ghost"
-                size="sm"
-                tooltipPosition="left"
-                renderIcon={NotebookReference}
+                variant="ghost"
+                size="icon"
                 onClick={() => setShowKnowledgeBaseSelect(true)}
                 disabled={isLoading || !availableKnowledgeBases?.length}
-                hasIconOnly
-                iconDescription={"Add knowledge"}
-              />
+                title="Add knowledge"
+              >
+                <BookOpen className="h-4 w-4" />
+              </Button>
             )}
             <Button
-              kind="ghost"
-              size="sm"
-              tooltipPosition="left"
+              variant="ghost"
+              size="icon"
               onClick={handleClearChat}
-              renderIcon={TrashCan}
               disabled={messages.length === 0 || isLoading}
-              hasIconOnly
-              iconDescription="Clear chat"
-            />
+              title="Clear chat"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
@@ -1007,16 +1001,15 @@ const ChatModal = ({ isOpen, onClose, formData, onUpdateMessages, modalTitle }) 
                 </p>
                 <div className="chat-modal__max-iterations-actions">
                   <Button
-                    kind="primary"
                     size="sm"
                     onClick={handleContinueExecution}
                     disabled={isLoading}
-                    renderIcon={Play}
                   >
+                    <Play className="h-4 w-4 mr-2" />
                     Continue
                   </Button>
                   <Button
-                    kind="secondary"
+                    variant="outline"
                     size="sm"
                     onClick={handleCancelContinuation}
                     disabled={isLoading}
