@@ -3,7 +3,7 @@
   "version": "0.1.5",
   "description": "Recursive Prompt Improver - A desktop/web application for testing, improving, and managing LLM prompts with multi-provider support",
   "private": true,
-  "homepage": "https://d-barletta.github.io/Recursive-Prompt-Improver",
+  "homepage": "https://d-barletta.github.io/recursive-prompt-improver",
   "author": {
     "name": "d-barletta",
     "email": "davide.barletta@icloud.com"
